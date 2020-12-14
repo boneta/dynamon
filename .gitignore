@@ -1,0 +1,9 @@
+# Binary objects and modules
+src/*.o
+src/*.mod
+fDynamo/*.o
+fDynamo/*.mod
+fDynamo/*.a
+
+# Compiled executables
+exe/*
