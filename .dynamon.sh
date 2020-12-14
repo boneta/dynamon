@@ -31,6 +31,6 @@ function cdynamon() {
     return
   fi
   # compilation
-  make dynamon -C $DYNAMON/src EXE="$exe_name" "$@" && echo "Succesful compilation of '$exe_name'"
+  make dynamon -s -C $DYNAMON/src EXE="$exe_name" "$@" && echo "Succesful compilation of '$exe_name'"
 }
 export -f cdynamon
