@@ -1,0 +1,39 @@
+#######################################################################
+##                          DYNAMON MAKEFILE                         ##
+#######################################################################
+
+# name of the final executable, destination and fDynamo path
+EXE     ?= dynamon
+EXEPATH ?= ../exe
+DYNPATH ?= ../fDynamo
+
+# compiler and flags
+FC       = gfortran
+Olevel   = -O3
+FFLAGS   = $(Olevel) -finit-local-zero -frecord-marker=4 \
+           -J. -I$(DYNPATH) -I$(PWD)
+
+#----------------------------------------------------------------------
+
+OBJS := initialization.f90 \
+        common.f90 \
+        panadero.f90 \
+        calculation_modes.f90 \
+        dynamon.f90 \
+        $(DYNPATH)/dynamo.a
+
+#----------------------------------------------------------------------
+
+.DEFAULT_GOAL := dynamon
+.PHONY        := dynamon fdynamo clean
+
+dynamon: $(OBJS)
+	$(FC) $(FFLAGS) $(OBJS) -o $(EXEPATH)/$(EXE)
+
+fdynamo: $(DYNPATH)/dynamo.a
+
+$(DYNPATH)/dynamo.a:
+	@make -C $(DYNPATH)
+
+clean:
+	rm -f *.o *.mod
