@@ -11,6 +11,10 @@
 !   CALCULATE_GRADIENT            Calculate stable gradient
 !   CALCULATE_MINIMIZATION        Perform CG and L-BFGS-B structural optimizations
 !
+!  Functions
+!  ---------
+!   DISTANCE_CRD                  Distance for the 'n' constraint from coordinates
+!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module COMMON
@@ -92,6 +96,28 @@ module COMMON
 
     end subroutine
 
+    !  DISTANCE_CRD  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    function distance_crd(n)
+
+        !--------------------------------------------------------------
+        ! Read distance for the 'n' constraint from coordinates
+        !--------------------------------------------------------------
+
+        implicit none
+
+        integer, intent(in)                :: n
+        real(8)                            :: distance_crd
+
+        select case(c_type(n))
+            case (1)
+                distance_crd = geometry_distance(atmcrd, a_anum(c_atoms(n,1)), a_anum(c_atoms(n,2)))
+            case (2)
+                distance_crd = geometry_distance(atmcrd, a_anum(c_atoms(n,1)), a_anum(c_atoms(n,2))) &
+                 + c_symm(n) * geometry_distance(atmcrd, a_anum(c_atoms(n,3)), a_anum(c_atoms(n,4)))
+        end select
+
+    end function
+
     !  DEFINE_CONSTRAINTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine define_constraints(print_file)
 
@@ -126,8 +152,11 @@ module COMMON
 
             ! define points
             do j=1, 4
-                if (c_atoms(i,j) /= 0) CALL constraint_point_define( atom_selection(atom_number=(/ c_atoms(i,j) /)) )
+                if (c_atoms(i,j) /= 0) CALL constraint_point_define( atom_selection(atom_number=(/ a_anum( c_atoms(i,j) ) /)) )
             end do
+
+            ! use distance from .crd if requested
+            if (c_dcrd(i)) c_dist(i) = distance_crd(i)
 
             ! define constraint
             select case (c_type(i))
