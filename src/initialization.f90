@@ -162,25 +162,25 @@ module INITIALIZATION
       select case (trim(option))   !FIXME: Make it case insensitive
         case ('MODE')
           read(100,*,iostat=io_stat) option, mode
-        case ('NAME','TITLE')
+        case ('NAME')
           read(100,*,iostat=io_stat) option, name
-        case ('SYSTEMBIN','SYSTEM','SYS','BIN')
+        case ('SYSTEMBIN','BIN')
           read(100,*,iostat=io_stat) option, sys_bin
         case ('COORD')
           read(100,*,iostat=io_stat) option, coord
-        case ('CORES', 'CPU')
+        case ('CORES')
           read(100,*,iostat=io_stat) option, cores
-        case ('MEMORY', 'RAM')
+        case ('MEMORY')
           read(100,*,iostat=io_stat) option, memory
         case ('CHARGE')
           read(100,*,iostat=io_stat) option, qm_charge
-        case ('MULTIPLICITY','MULTI')
+        case ('MULTI')
           read(100,*,iostat=io_stat) option, qm_multi
         case ('SEMIEMP','METHOD')
           read(100,*,iostat=io_stat) option, semiemp
-        case ('GAUSSIAN','GAUSS')
+        case ('GAUSS')
           read(100,*,iostat=io_stat) option, gauss_flg
-        case ('FUNCTIONAL','FUNC')
+        case ('FUNC')
           read(100,*,iostat=io_stat) option, dft_func
         case ('BASIS')
           read(100,*,iostat=io_stat) option, dft_basis
@@ -192,17 +192,17 @@ module INITIALIZATION
           read(100,*,iostat=io_stat) option, lbfgsb_steps
         case ('LBFGSB_TOLERANCE')
           read(100,*,iostat=io_stat) option, lbfgsb_tolerance
-        case ('TEMPERATURE','TEMP')
+        case ('TEMP')
           read(100,*,iostat=io_stat) option, temp
         case ('MD_STEP')
           read(100,*,iostat=io_stat) option, md_step
-        case ('EQUILIBRATION','EQUI')
+        case ('EQUI')
           read(100,*,iostat=io_stat) option, equilibration
-        case ('PRODUCTION','PROD')
+        case ('PROD')
           read(100,*,iostat=io_stat) option, production
         case ('DCD_FREQ')
           read(100,*,iostat=io_stat) option, dcd_freq
-        case ('VELOCITIES','VEL')
+        case ('VEL')
           read(100,*,iostat=io_stat) option, velocities
         case ('PBC','MINIMUM_IMAGE')
           read(100,*,iostat=io_stat) option, pbc
@@ -210,9 +210,9 @@ module INITIALIZATION
           read(100,*,iostat=io_stat) option, loc_steps
         case ('LOC_TOLERANCE')
           read(100,*,iostat=io_stat) option, loc_tolerance
-        case ('TS_SEARCH','TS')
+        case ('TS')
           read(100,*,iostat=io_stat) option, ts_search
-        case ('IRC_DIR','DIRECTION','DIR')
+        case ('IRC_DIR')
           read(100,*,iostat=io_stat) option, irc_dir
         case ('IRC_STEPS')
           read(100,*,iostat=io_stat) option, irc_steps
@@ -240,7 +240,7 @@ module INITIALIZATION
           a_atoms_tmp(:,:) = a_atoms(:,:)
           CALL move_alloc(a_atoms_tmp,a_atoms)
           read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
-        case ('CONSTRAINT','CONSTR','C')
+        case ('CONSTR','C')
           constr_flg = .true.
           c_nconstr = c_nconstr + 1
           ! increment arrays
@@ -300,11 +300,11 @@ module INITIALIZATION
           do
             read(100, *, iostat=io_stat) option
             if (io_stat/=0) exit
-            if (trim(option)=='CONSTRAINT' .or. trim(option)=='CONSTR' .or. trim(option)=='C') exit
+            if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
             if (option(1:1) == '!' .or. option(1:1) == '#') cycle
             backspace(100)
             select case (trim(option))
-              case ('SYMMETRY','SYMM')
+              case ('SYMM')
                 read(100,*,iostat=io_stat) option, c_symm(c_nconstr)
               case ('N')
                 read(100,*,iostat=io_stat) option, c_indx(c_nconstr)
@@ -314,12 +314,12 @@ module INITIALIZATION
                 read(100,*,iostat=io_stat) option, c_forc(c_nconstr)
               case ('DCRD')
                 read(100,*,iostat=io_stat) option, c_dcrd(c_nconstr)
-              case ('DINITIAL','DINIT')
+              case ('DINIT')
                 read(100,*,iostat=io_stat) option, c_dini(c_nconstr)
               case ('DEND')
                 read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
               case ('DIST','D')
-                read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
+                read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
               case ('STEP')
                 read(100,*,iostat=io_stat) option, c_step(c_nconstr)
               case ('DFILE')
