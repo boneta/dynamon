@@ -25,7 +25,7 @@ OBJS := initialization.f90 \
 #----------------------------------------------------------------------
 
 .DEFAULT_GOAL := dynamon
-.PHONY        := dynamon fdynamo clean
+.PHONY        := dynamon fdynamo clean clean_all
 
 dynamon: $(OBJS)
 	$(FC) $(FFLAGS) $(OBJS) -o $(EXEPATH)/$(EXE)
@@ -33,7 +33,11 @@ dynamon: $(OBJS)
 fdynamo: $(DYNPATH)/dynamo.a
 
 $(DYNPATH)/dynamo.a:
-	@make -C $(DYNPATH)
+	@printf "Compiling fDynamo... "
+	@make -s -C $(DYNPATH) && printf "DONE \n"
 
 clean:
 	rm -f *.o *.mod
+
+clean_all: clean
+	@make clean -C $(DYNPATH)

@@ -118,7 +118,7 @@ OBJS =	BLASD.o\
 
 all: $(OBJS)
 	rm -f dynamo.a
-	ar ruvc dynamo.a $(OBJS)
+	ar rUuc dynamo.a $(OBJS)
 
 clean:
 	rm -f *.o *.mod *.a
