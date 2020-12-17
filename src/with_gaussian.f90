@@ -42,7 +42,7 @@ subroutine chrg_server( code, natm, naqm, atmn, cord, ener, qfit, grad, hess )
   write( 999, "(a/a/a/a)" ) "%Chk=calc.chk", &
     "%NProcShared=" // trim(cores), &
     "%Mem=" // trim(memory), &
-    "#p" // trim(dft_func) // "/" // trim(dft_basis) // " charge guess=(read,tcheck) scf=(direct,conver=6) nosymm"
+    "#p " // trim(dft_func) // "/" // trim(dft_basis) // " charge guess=(read,tcheck) scf=(direct,conver=6) nosymm"
   if( code == 1 ) then
       write( 999, "(a/)" ) "force pop=chelpg fchk"
   else if( code == 2 ) then
