@@ -13,7 +13,7 @@ module INITIALIZATION
 
   implicit none
 
-  real(8), parameter                 :: dynamon_version = 0.1
+  character(len=128) , parameter     :: dynamon_version = '0.2.0'
 
   !  OPTIONS & DEFAULTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   character(len=128)                 :: MODE = ''                     ! Calculation mode
@@ -96,10 +96,10 @@ module INITIALIZATION
   subroutine dynamon_header()
 
     write(*,fmt='(A80)') REPEAT('-',80)
-    write(*,fmt='(30X,A22)')              '                    _ '
-    write(*,fmt='(30X,A22)')              ' _|   _  _  _ _  _ | |'
-    write(*,fmt='(30X,A22)')              '(_|\/| |(_|| | |(_)   '
-    write(*,fmt='(30X,A22,23X,A1,F3.1)')  '   /                  ','v',dynamon_version
+    write(*,fmt='(30X,A22)')           '                    _ '
+    write(*,fmt='(30X,A22)')           ' _|   _  _  _ _  _ | |'
+    write(*,fmt='(30X,A22)')           '(_|\/| |(_|| | |(_)   '
+    write(*,fmt='(30X,A22,20X,A1,A8)') '   /                  ','v',dynamon_version
 
   end subroutine
 
@@ -112,9 +112,12 @@ module INITIALIZATION
 
     implicit none
 
+    integer                            :: i
     character(len=200)                 :: input_file
     character(len=20)                  :: option
     character(len=200)                 :: arg
+    integer                            :: argn
+    logical                            :: f_exist
     integer                            :: io_stat
     integer                            :: dot_position
 
@@ -132,212 +135,280 @@ module INITIALIZATION
     character(256), allocatable        :: c_file_tmp(:)
 
     ! check no argument
-    if (COMMAND_ARGUMENT_COUNT() == 0) STOP '- OPTIONS FILE NOT FOUND AS ARGUMENT'
+    if (COMMAND_ARGUMENT_COUNT() == 0) then
+      write(*,fmt='(A)') 'ERROR: No arguments found'
+      STOP
+    end if
 
     ! first argument as input file name
     CALL GETARG(1,input_file)
-    write(*,fmt='(/,A,A/)') "Options read from ", trim(input_file)
-    open(unit=100, file=input_file, status='old', action='read', form='formatted')
+    ! check input_file not found
+    INQUIRE(file=trim(input_file),exist=f_exist)
+    if (f_exist) then
+      write(*,fmt='(/,A,A)') "Options read from ", trim(input_file)
+      open(unit=100, file=input_file, status='old', action='read', form='formatted')
+      ! allocate arrays
+      allocate( a_atoms(a_natoms,3), &
+                c_indx(c_nconstr), &
+                c_type(c_nconstr), &
+                c_symm(c_nconstr), &
+                c_forc(c_nconstr), &
+                c_dcrd(c_nconstr), &
+                c_dini(c_nconstr), &
+                c_dend(c_nconstr), &
+                c_dist(c_nconstr), &
+                c_step(c_nconstr), &
+                c_file(c_nconstr), &
+                c_atoms(c_nconstr,4) )
+      ! read line by line and asign general variables
+      do
+        read(100, *, iostat=io_stat) option
+        if (io_stat/=0) exit
+        if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+        backspace(100)
+        select case (trim(option))   !FIXME: Make it case insensitive
+          case ('MODE')
+            read(100,*,iostat=io_stat) option, mode
+          case ('NAME')
+            read(100,*,iostat=io_stat) option, name
+          case ('BIN')
+            read(100,*,iostat=io_stat) option, sys_bin
+          case ('COORD')
+            read(100,*,iostat=io_stat) option, coord
+          case ('CORES')
+            read(100,*,iostat=io_stat) option, cores
+          case ('MEMORY')
+            read(100,*,iostat=io_stat) option, memory
+          case ('CHARGE')
+            read(100,*,iostat=io_stat) option, qm_charge
+          case ('MULTI')
+            read(100,*,iostat=io_stat) option, qm_multi
+          case ('SEMIEMP')
+            read(100,*,iostat=io_stat) option, semiemp
+          case ('GAUSS')
+            read(100,*,iostat=io_stat) option, gauss_flg
+          case ('FUNC')
+            read(100,*,iostat=io_stat) option, dft_func
+          case ('BASIS')
+            read(100,*,iostat=io_stat) option, dft_basis
+          case ('CG_STEPS')
+            read(100,*,iostat=io_stat) option, cg_steps
+          case ('CG_TOLERANCE')
+            read(100,*,iostat=io_stat) option, cg_tolerance
+          case ('LBFGSB_STEPS')
+            read(100,*,iostat=io_stat) option, lbfgsb_steps
+          case ('LBFGSB_TOLERANCE')
+            read(100,*,iostat=io_stat) option, lbfgsb_tolerance
+          case ('TEMP')
+            read(100,*,iostat=io_stat) option, temp
+          case ('MD_STEP')
+            read(100,*,iostat=io_stat) option, md_step
+          case ('EQUI')
+            read(100,*,iostat=io_stat) option, equilibration
+          case ('PROD')
+            read(100,*,iostat=io_stat) option, production
+          case ('DCD_FREQ')
+            read(100,*,iostat=io_stat) option, dcd_freq
+          case ('VEL')
+            read(100,*,iostat=io_stat) option, velocities
+          case ('PBC')
+            read(100,*,iostat=io_stat) option, pbc
+          case ('LOC_STEPS')
+            read(100,*,iostat=io_stat) option, loc_steps
+          case ('LOC_TOLERANCE')
+            read(100,*,iostat=io_stat) option, loc_tolerance
+          case ('TS')
+            read(100,*,iostat=io_stat) option, ts_search
+          case ('IRC_DIR')
+            read(100,*,iostat=io_stat) option, irc_dir
+          case ('IRC_STEPS')
+            read(100,*,iostat=io_stat) option, irc_steps
+          case ('IRC_DSP')
+            read(100,*,iostat=io_stat) option, irc_dsp
+          case ('INT_NINT')
+            read(100,*,iostat=io_stat) option, int_nint
+          case ('INT_NRES')
+            read(100,*,iostat=io_stat) option, int_nres
+          case ('INT_WBOX')
+            read(100,*,iostat=io_stat) option, int_wbox(:)
+          case ('INT_IONS')
+            read(100,*,iostat=io_stat) option, int_ions(:)
+          case ('KIE_ATOMN')
+            read(100,*,iostat=io_stat) option, kie_atomn
+          case ('KIE_SKIP')
+            read(100,*,iostat=io_stat) option, kie_skip
+          case ('KIE_MASS')
+            read(100,*,iostat=io_stat) option, kie_mass
+          case ('KIE_HESS')
+            read(100,*,iostat=io_stat) option, kie_hess
+          case ('ATOM','A')
+            a_natoms = a_natoms + 1
+            allocate(a_atoms_tmp(a_natoms,3))
+            a_atoms_tmp(:,:) = a_atoms(:,:)
+            CALL move_alloc(a_atoms_tmp,a_atoms)
+            read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
+          case ('CONSTR','C')
+            constr_flg = .true.
+            c_nconstr = c_nconstr + 1
+            ! increment arrays
+            allocate( c_indx_tmp(c_nconstr), &
+                      c_type_tmp(c_nconstr), &
+                      c_symm_tmp(c_nconstr), &
+                      c_forc_tmp(c_nconstr), &
+                      c_dcrd_tmp(c_nconstr), &
+                      c_dini_tmp(c_nconstr), &
+                      c_dend_tmp(c_nconstr), &
+                      c_dist_tmp(c_nconstr), &
+                      c_step_tmp(c_nconstr), &
+                      c_file_tmp(c_nconstr), &
+                      c_atoms_tmp(c_nconstr,4) )
+            c_indx_tmp(:) = 0
+            c_type_tmp(:) = 0
+            c_symm_tmp(:) = 0
+            c_forc_tmp(:) = 0
+            c_dcrd_tmp(:) = .false.
+            c_dini_tmp(:) = 0
+            c_dend_tmp(:) = 0
+            c_dist_tmp(:) = 0
+            c_step_tmp(:) = 0
+            c_file_tmp(:) = ''
+            c_atoms_tmp(:,:) = 0
+            c_indx_tmp(:) = c_indx(:)
+            c_type_tmp(:) = c_type(:)
+            c_symm_tmp(:) = c_symm(:)
+            c_forc_tmp(:) = c_forc(:)
+            c_dcrd_tmp(:) = c_dcrd(:)
+            c_dini_tmp(:) = c_dini(:)
+            c_dend_tmp(:) = c_dend(:)
+            c_dist_tmp(:) = c_dist(:)
+            c_step_tmp(:) = c_step(:)
+            c_file_tmp(:) = c_file(:)
+            c_atoms_tmp(:,:) = c_atoms(:,:)
+            CALL move_alloc(c_indx_tmp,c_indx)
+            CALL move_alloc(c_type_tmp,c_type)
+            CALL move_alloc(c_symm_tmp,c_symm)
+            CALL move_alloc(c_forc_tmp,c_forc)
+            CALL move_alloc(c_dcrd_tmp,c_dcrd)
+            CALL move_alloc(c_dini_tmp,c_dini)
+            CALL move_alloc(c_dend_tmp,c_dend)
+            CALL move_alloc(c_dist_tmp,c_dist)
+            CALL move_alloc(c_step_tmp,c_step)
+            CALL move_alloc(c_file_tmp,c_file)
+            CALL move_alloc(c_atoms_tmp,c_atoms)
+            ! type of constraint
+            read(100,*,iostat=io_stat) option, arg
+            select case (trim(arg))
+              case ('D','d')
+                c_type(c_nconstr) = 1
+              case ('M','m')
+                c_type(c_nconstr) = 2
+            end select
+            ! read all constraint options
+            do
+              read(100, *, iostat=io_stat) option
+              if (io_stat/=0) exit
+              if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
+              if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+              backspace(100)
+              select case (trim(option))
+                case ('SYMM')
+                  read(100,*,iostat=io_stat) option, c_symm(c_nconstr)
+                case ('N')
+                  read(100,*,iostat=io_stat) option, c_indx(c_nconstr)
+                case ('ATOMS')
+                  read(100,*,iostat=io_stat) option, c_atoms(c_nconstr,1:c_type(c_nconstr)*2)
+                case ('FORCE')
+                  read(100,*,iostat=io_stat) option, c_forc(c_nconstr)
+                case ('DCRD')
+                  read(100,*,iostat=io_stat) option, c_dcrd(c_nconstr)
+                case ('DINIT')
+                  read(100,*,iostat=io_stat) option, c_dini(c_nconstr)
+                case ('DEND')
+                  read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
+                case ('DIST','D')
+                  read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
+                case ('STEP')
+                  read(100,*,iostat=io_stat) option, c_step(c_nconstr)
+                case ('DFILE')
+                  read(100,*,iostat=io_stat) option, c_file(c_nconstr)
+                case DEFAULT
+                  read(100,*) arg
+                  write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+                end select
+              end do
+          case DEFAULT
+            read(100,*) arg
+            write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+        end select
+      end do
+      argn = 2
+    else
+      argn = 1
+    end if
 
-    ! allocate arrays
-    allocate( a_atoms(a_natoms,3), &
-              c_indx(c_nconstr), &
-              c_type(c_nconstr), &
-              c_symm(c_nconstr), &
-              c_forc(c_nconstr), &
-              c_dcrd(c_nconstr), &
-              c_dini(c_nconstr), &
-              c_dend(c_nconstr), &
-              c_dist(c_nconstr), &
-              c_step(c_nconstr), &
-              c_file(c_nconstr), &
-              c_atoms(c_nconstr,4) )
-
-    ! read line by line and asign general variables
-    do
-      read(100, *, iostat=io_stat) option
-      if (io_stat/=0) exit
-      if (option(1:1) == '!' .or. option(1:1) == '#') cycle
-      backspace(100)
-      select case (trim(option))   !FIXME: Make it case insensitive
-        case ('MODE')
-          read(100,*,iostat=io_stat) option, mode
-        case ('NAME')
-          read(100,*,iostat=io_stat) option, name
-        case ('SYSTEMBIN','BIN')
-          read(100,*,iostat=io_stat) option, sys_bin
-        case ('COORD')
-          read(100,*,iostat=io_stat) option, coord
-        case ('CORES')
-          read(100,*,iostat=io_stat) option, cores
-        case ('MEMORY')
-          read(100,*,iostat=io_stat) option, memory
-        case ('CHARGE')
-          read(100,*,iostat=io_stat) option, qm_charge
-        case ('MULTI')
-          read(100,*,iostat=io_stat) option, qm_multi
-        case ('SEMIEMP','METHOD')
-          read(100,*,iostat=io_stat) option, semiemp
-        case ('GAUSS')
-          read(100,*,iostat=io_stat) option, gauss_flg
-        case ('FUNC')
-          read(100,*,iostat=io_stat) option, dft_func
-        case ('BASIS')
-          read(100,*,iostat=io_stat) option, dft_basis
-        case ('CG_STEPS')
-          read(100,*,iostat=io_stat) option, cg_steps
-        case ('CG_TOLERANCE')
-          read(100,*,iostat=io_stat) option, cg_tolerance
-        case ('LBFGSB_STEPS')
-          read(100,*,iostat=io_stat) option, lbfgsb_steps
-        case ('LBFGSB_TOLERANCE')
-          read(100,*,iostat=io_stat) option, lbfgsb_tolerance
-        case ('TEMP')
-          read(100,*,iostat=io_stat) option, temp
-        case ('MD_STEP')
-          read(100,*,iostat=io_stat) option, md_step
-        case ('EQUI')
-          read(100,*,iostat=io_stat) option, equilibration
-        case ('PROD')
-          read(100,*,iostat=io_stat) option, production
-        case ('DCD_FREQ')
-          read(100,*,iostat=io_stat) option, dcd_freq
-        case ('VEL')
-          read(100,*,iostat=io_stat) option, velocities
-        case ('PBC','MINIMUM_IMAGE')
-          read(100,*,iostat=io_stat) option, pbc
-        case ('LOC_STEPS')
-          read(100,*,iostat=io_stat) option, loc_steps
-        case ('LOC_TOLERANCE')
-          read(100,*,iostat=io_stat) option, loc_tolerance
-        case ('TS')
-          read(100,*,iostat=io_stat) option, ts_search
-        case ('IRC_DIR')
-          read(100,*,iostat=io_stat) option, irc_dir
-        case ('IRC_STEPS')
-          read(100,*,iostat=io_stat) option, irc_steps
-        case ('IRC_DSP')
-          read(100,*,iostat=io_stat) option, irc_dsp
-        case ('INT_NINT')
-          read(100,*,iostat=io_stat) option, int_nint
-        case ('INT_NRES')
-          read(100,*,iostat=io_stat) option, int_nres
-        case ('INT_WBOX')
-          read(100,*,iostat=io_stat) option, int_wbox(:)
-        case ('INT_IONS')
-          read(100,*,iostat=io_stat) option, int_ions(:)
-        case ('KIE_ATOMN')
-          read(100,*,iostat=io_stat) option, kie_atomn
-        case ('KIE_SKIP')
-          read(100,*,iostat=io_stat) option, kie_skip
-        case ('KIE_MASS')
-          read(100,*,iostat=io_stat) option, kie_mass
-        case ('KIE_HESS')
-          read(100,*,iostat=io_stat) option, kie_hess
-        case ('ATOM','A')
-          a_natoms = a_natoms + 1
-          allocate(a_atoms_tmp(a_natoms,3))
-          a_atoms_tmp(:,:) = a_atoms(:,:)
-          CALL move_alloc(a_atoms_tmp,a_atoms)
-          read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
-        case ('CONSTR','C')
-          constr_flg = .true.
-          c_nconstr = c_nconstr + 1
-          ! increment arrays
-          allocate( c_indx_tmp(c_nconstr), &
-                    c_type_tmp(c_nconstr), &
-                    c_symm_tmp(c_nconstr), &
-                    c_forc_tmp(c_nconstr), &
-                    c_dcrd_tmp(c_nconstr), &
-                    c_dini_tmp(c_nconstr), &
-                    c_dend_tmp(c_nconstr), &
-                    c_dist_tmp(c_nconstr), &
-                    c_step_tmp(c_nconstr), &
-                    c_file_tmp(c_nconstr), &
-                    c_atoms_tmp(c_nconstr,4) )
-          c_indx_tmp(:) = 0
-          c_type_tmp(:) = 0
-          c_symm_tmp(:) = 0
-          c_forc_tmp(:) = 0
-          c_dcrd_tmp(:) = .false.
-          c_dini_tmp(:) = 0
-          c_dend_tmp(:) = 0
-          c_dist_tmp(:) = 0
-          c_step_tmp(:) = 0
-          c_file_tmp(:) = ''
-          c_atoms_tmp(:,:) = 0
-          c_indx_tmp(:) = c_indx(:)
-          c_type_tmp(:) = c_type(:)
-          c_symm_tmp(:) = c_symm(:)
-          c_forc_tmp(:) = c_forc(:)
-          c_dcrd_tmp(:) = c_dcrd(:)
-          c_dini_tmp(:) = c_dini(:)
-          c_dend_tmp(:) = c_dend(:)
-          c_dist_tmp(:) = c_dist(:)
-          c_step_tmp(:) = c_step(:)
-          c_file_tmp(:) = c_file(:)
-          c_atoms_tmp(:,:) = c_atoms(:,:)
-          CALL move_alloc(c_indx_tmp,c_indx)
-          CALL move_alloc(c_type_tmp,c_type)
-          CALL move_alloc(c_symm_tmp,c_symm)
-          CALL move_alloc(c_forc_tmp,c_forc)
-          CALL move_alloc(c_dcrd_tmp,c_dcrd)
-          CALL move_alloc(c_dini_tmp,c_dini)
-          CALL move_alloc(c_dend_tmp,c_dend)
-          CALL move_alloc(c_dist_tmp,c_dist)
-          CALL move_alloc(c_step_tmp,c_step)
-          CALL move_alloc(c_file_tmp,c_file)
-          CALL move_alloc(c_atoms_tmp,c_atoms)
-          ! type of constraint
-          read(100,*,iostat=io_stat) option, arg
-          select case (trim(arg))
-            case ('D','d')
-              c_type(c_nconstr) = 1
-            case ('M','m')
-              c_type(c_nconstr) = 2
-          end select
-          ! read all constraint options
-          do
-            read(100, *, iostat=io_stat) option
-            if (io_stat/=0) exit
-            if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
-            if (option(1:1) == '!' .or. option(1:1) == '#') cycle
-            backspace(100)
-            select case (trim(option))
-              case ('SYMM')
-                read(100,*,iostat=io_stat) option, c_symm(c_nconstr)
-              case ('N')
-                read(100,*,iostat=io_stat) option, c_indx(c_nconstr)
-              case ('ATOMS')
-                read(100,*,iostat=io_stat) option, c_atoms(c_nconstr,1:c_type(c_nconstr)*2)
-              case ('FORCE')
-                read(100,*,iostat=io_stat) option, c_forc(c_nconstr)
-              case ('DCRD')
-                read(100,*,iostat=io_stat) option, c_dcrd(c_nconstr)
-              case ('DINIT')
-                read(100,*,iostat=io_stat) option, c_dini(c_nconstr)
-              case ('DEND')
-                read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
-              case ('DIST','D')
-                read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
-              case ('STEP')
-                read(100,*,iostat=io_stat) option, c_step(c_nconstr)
-              case ('DFILE')
-                read(100,*,iostat=io_stat) option, c_file(c_nconstr)
-              case DEFAULT
-                read(100,*) arg
-                write(*,fmt='(A,A)') "Omitting unknown option: ", arg
-              end select
-            end do
-        case DEFAULT
-          read(100,*) arg
-          write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+    ! read command line arguments
+    write(*,*)
+    do while (argn <= COMMAND_ARGUMENT_COUNT())
+      CALL GETARG(argn, option)
+      CALL GETARG(argn+1, arg)
+      write(*,fmt='(A,5X,A8,2X,A)') "Argument:", ADJUSTL(option(3:)), trim(arg)
+      select case (trim(option))
+        case ('--MODE')
+          read(arg,*,iostat=io_stat) mode
+        case ('--NAME')
+          read(arg,*,iostat=io_stat) name
+        case ('--BIN')
+          read(arg,*,iostat=io_stat) sys_bin
+        case ('--COORD')
+          read(arg,*,iostat=io_stat) coord
+        case ('--CORES')
+          read(arg,*,iostat=io_stat) cores
+        case ('--MEMORY')
+          read(arg,*,iostat=io_stat) memory
+        case ('--CHARGE')
+          read(arg,*,iostat=io_stat) qm_charge
+        case ('--MULTI')
+          read(arg,*,iostat=io_stat) qm_multi
+        case ('--SEMIEMP')
+          read(arg,*,iostat=io_stat) semiemp
+        case ('--GAUSS')
+          read(arg,*,iostat=io_stat) gauss_flg
+        case ('--FUNC')
+          read(arg,*,iostat=io_stat) dft_func
+        case ('--BASIS')
+          read(arg,*,iostat=io_stat) dft_basis
+        case ('--TEMP')
+          read(arg,*,iostat=io_stat) temp
+        case ('--EQUI')
+          read(arg,*,iostat=io_stat) equilibration
+        case ('--PROD')
+          read(arg,*,iostat=io_stat) production
+        case ('--VEL')
+          read(arg,*,iostat=io_stat) velocities
+        case ('--TS')
+          read(arg,*,iostat=io_stat) ts_search
+        case ('--IRC_DIR')
+          read(arg,*,iostat=io_stat) irc_dir
+        case ('--N')
+          do i=1, c_nconstr
+            CALL GETARG(argn+i, arg)
+            read(arg,*,iostat=io_stat) c_indx(i)
+          end do
+          argn = argn + c_nconstr - 1
+        case ('--DIST')
+          do i=1, c_nconstr
+            CALL GETARG(argn+i, arg)
+            read(arg,*,iostat=io_stat) c_dist(i)
+          end do
+          argn = argn + c_nconstr - 1
       end select
+      argn = argn + 2
     end do
 
     ! check neccesary inputs
     if (Len_Trim(mode) == 0 .or. Len_Trim(sys_bin) == 0 .or. Len_Trim(coord) == 0) then
-      STOP 'Missing mandatory options (MODE/SYSTEMBIN/COORD)'
+      write(*,fmt='(A)') 'ERROR: Missing mandatory options (MODE/BIN/COORD)'
+      STOP
     end if
 
     ! get coord without extension
