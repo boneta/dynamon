@@ -8,6 +8,7 @@
 !   QM_INITIALIZE                 Set-up the QM calculation type, fix atoms and initialize energy
 !   GET_ATOM_NUMBERS              Obtain the atom numbers for constraints references
 !   DEFINE_CONSTRAINTS            Set-up constraints
+!   OUT_DIST_ENERGY               Write distances corresponding to constraint and energy
 !   CALCULATE_GRADIENT            Calculate stable gradient
 !   CALCULATE_MINIMIZATION        Perform CG and L-BFGS-B structural optimizations
 !
@@ -133,8 +134,7 @@ module COMMON
         character(len=20)                  :: str_tmp
 
         if (.not. constr_flg) return
-
-        CALL get_atom_numbers
+        if (.not. ALLOCATED(a_anum)) CALL get_atom_numbers
 
         CALL constraint_initialize
 
@@ -187,6 +187,51 @@ module COMMON
             end select
 
         end do
+
+    end subroutine
+
+    !  OUT_DIST_ENERGY  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine out_dist_energy(out_file)
+
+        !--------------------------------------------------------------
+        ! Write distances corresponding to constraint and energy
+        !--------------------------------------------------------------
+
+        character(len=256), intent(in)     :: out_file
+
+        integer                            :: i
+        logical                            :: f_exist
+
+        if (.not. constr_flg) return
+        if (.not. ALLOCATED(a_anum)) CALL get_atom_numbers
+
+        ! check file existence to append or create new
+        INQUIRE(file=out_file, exist=f_exist)
+        if (f_exist) then
+          open(200, file=out_file, form='formatted', status='old', position='append')
+        else
+          open(200, file=out_file, form='formatted', status='new')
+        endif
+
+        ! current distances
+        do i=1, c_nconstr
+          write(200, fmt='(f12.4,2X)', advance='no') distance_crd(i)
+        end do
+
+        ! total energy
+        write(200, fmt='(f20.10,2X, f20.10,2X)', advance='no') etotal, eqm
+
+        ! index number
+        do i=1, c_nconstr
+          write(200, fmt='(I5,2X)', advance='no') c_indx(i)
+        end do
+
+        ! reference distances
+        do i=1, c_nconstr
+          write(200, fmt='(f12.4,2X)', advance='no') c_dist(i)
+        end do
+
+        close(200)
 
     end subroutine
 

@@ -25,7 +25,11 @@ module CALCULATION_MODES
     !  DYNAMON_SP  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine dynamon_sp()
 
+        if (len_trim(name)==0) name = trim(coord_name) // "-sp"
+
         CALL energy
+
+        if (mode == 'CORR') CALL out_dist_energy(trim(name)//".out")
 
     end subroutine
 
@@ -38,6 +42,7 @@ module CALCULATION_MODES
         CALL calculate_gradient
         CALL calculate_minimization
 
+        if (mode == 'SCAN' .or. mode == 'PES') CALL out_dist_energy(trim(name)//".out")
         CALL coordinates_write(trim(name)//".crd")
         CALL pdb_write(trim(name)//".pdb")
 

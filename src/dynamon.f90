@@ -63,7 +63,7 @@ program DYNAMON
     case ('SP','CORR')
       CALL print_mode('SINGLE POINT CALCULATION')
       CALL dynamon_sp
-    case ('MINIMIZATION','MINI')
+    case ('MINIMIZATION','MINI','SCAN','PES')
       CALL print_mode('MINIMIZATION CALCULATION')
       CALL dynamon_minimization
     case ('LOCATE','LOC')
