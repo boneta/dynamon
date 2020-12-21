@@ -63,19 +63,19 @@ program DYNAMON
     case ('SP','CORR')
       CALL print_mode('SINGLE POINT CALCULATION')
       CALL dynamon_sp
-    case ('MINIMIZATION','MINI','SCAN','PES')
+    case ('MINI','SCAN','PES')
       CALL print_mode('MINIMIZATION CALCULATION')
       CALL dynamon_minimization
-    case ('LOCATE','LOC')
+    case ('LOCATE')
       CALL print_mode('LOCATE CALCULATION')
       CALL dynamon_locate
     case ('IRC')
       CALL print_mode('IRC CALCULATION')
       CALL dynamon_irc
-    case ('DYNAMIC','DYN')
-      CALL print_mode('DYNAMIC CALCULATION')
+    case ('DYNAMIC')
+      CALL print_mode('MOLECULAR DYNAMICS CALCULATION')
       CALL dynamon_dynamic
-    case ('INTERACTION','INT')
+    case ('INTERACTION')
       CALL print_mode('INTERACTION CALCULATION')
       CALL dynamon_interaction
     case ('KIE')
