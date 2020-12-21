@@ -159,6 +159,9 @@ module CALCULATION_MODES
                 name = trim(coord_name) // "-irc-back"
             else if (irc_dir == 1) then
                 name = trim(coord_name) // "-irc-for"
+            else
+                write(*,fmt='(A)') 'ERROR: Unkown IRC direction'
+                STOP
             end if
         end if
 
