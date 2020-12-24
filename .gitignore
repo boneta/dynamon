@@ -5,5 +5,7 @@ fDynamo/*.o
 fDynamo/*.mod
 fDynamo/*.a
 
-# Compiled executables
-exe/*
+# User compiled executables and binaries
+user/*
+user/exe/*
+user/binaries/*
