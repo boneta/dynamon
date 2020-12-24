@@ -13,7 +13,10 @@ module INITIALIZATION
 
   implicit none
 
-  character(len=128) , parameter     :: dynamon_version = '0.2.0'
+  !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  character(len=128), parameter      :: dynamon_version = '0.2.1'
+  character(len=512)                 :: dynamon_path                  ! Installation path read from $DYNAMON env variable
+  character(len=128)                 :: binaries_path = '/user/binaries/'  ! Relative location from dynamon_path to the binary files (.bin)
 
   !  OPTIONS & DEFAULTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   character(len=128)                 :: MODE = ''                     ! Calculation mode
@@ -113,9 +116,9 @@ module INITIALIZATION
     implicit none
 
     integer                            :: i
-    character(len=200)                 :: input_file
+    character(len=512)                 :: input_file
     character(len=20)                  :: option
-    character(len=200)                 :: arg
+    character(len=512)                 :: arg
     integer                            :: argn
     logical                            :: f_exist
     integer                            :: io_stat
@@ -354,13 +357,13 @@ module INITIALIZATION
       write(*,fmt='(A,5X,A8,2X,A)') "Argument:", ADJUSTL(option(3:)), trim(arg)
       select case (trim(option))
         case ('--MODE')
-          read(arg,*,iostat=io_stat) mode
+          read(arg,'(A)',iostat=io_stat) mode
         case ('--NAME')
-          read(arg,*,iostat=io_stat) name
+          read(arg,'(A)',iostat=io_stat) name
         case ('--BIN')
-          read(arg,*,iostat=io_stat) sys_bin
+          read(arg,'(A)',iostat=io_stat) sys_bin
         case ('--COORD')
-          read(arg,*,iostat=io_stat) coord
+          read(arg,'(A)',iostat=io_stat) coord
         case ('--CORES')
           read(arg,*,iostat=io_stat) cores
         case ('--MEMORY')
@@ -370,13 +373,13 @@ module INITIALIZATION
         case ('--MULTI')
           read(arg,*,iostat=io_stat) qm_multi
         case ('--SEMIEMP')
-          read(arg,*,iostat=io_stat) semiemp
+          read(arg,'(A)',iostat=io_stat) semiemp
         case ('--GAUSS')
           read(arg,*,iostat=io_stat) gauss_flg
         case ('--FUNC')
-          read(arg,*,iostat=io_stat) dft_func
+          read(arg,'(A)',iostat=io_stat) dft_func
         case ('--BASIS')
-          read(arg,*,iostat=io_stat) dft_basis
+          read(arg,'(A)',iostat=io_stat) dft_basis
         case ('--TEMP')
           read(arg,*,iostat=io_stat) temp
         case ('--EQUI')
@@ -384,7 +387,7 @@ module INITIALIZATION
         case ('--PROD')
           read(arg,*,iostat=io_stat) production
         case ('--VEL')
-          read(arg,*,iostat=io_stat) velocities
+          read(arg,'(A)',iostat=io_stat) velocities
         case ('--TS')
           read(arg,*,iostat=io_stat) ts_search
         case ('--IRC_DIR')
@@ -404,6 +407,17 @@ module INITIALIZATION
       end select
       argn = argn + 2
     end do
+
+    ! get DYNAMON installation path from environment variable
+    CALL GET_ENVIRONMENT_VARIABLE('DYNAMON', dynamon_path)
+
+    ! if binary not found locally, check in binaries folder
+    if (Len_Trim(sys_bin) > 0) then
+      INQUIRE(file=trim(sys_bin),exist=f_exist)
+      if (.not. f_exist .and. Len_Trim(dynamon_path) > 0) then
+        sys_bin = trim(dynamon_path)//trim(binaries_path)//trim(sys_bin)
+      end if
+    end if
 
     ! check neccesary inputs
     if (Len_Trim(mode) == 0 .or. Len_Trim(sys_bin) == 0 .or. Len_Trim(coord) == 0) then
