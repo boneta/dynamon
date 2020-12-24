@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Description: Simple script to compile a DYNAMON executable
+# Last update: 24/12/2020
+
+# check no argument
+if [ "$1" == "" ]; then
+  echo "ERROR: No input arguments. Use -h for help."
+  exit
+fi
+# read final executable name
+exe_name=$1; shift
+# help
+if [ "$exe_name" == "-h" ] || [ "$exe_name" == "--help" ]; then
+  echo "##  Compilation wrapper for DYNAMON"
+  echo ""
+  echo "USAGE:  cdynamon <exe_name> [options]"
+  echo ""
+  echo "OPTIONS:"
+  echo "  EXEPATH=<absolute-path>"
+  echo "  DYNPATH=<absolute-path>"
+  echo ""
+  echo "Current folder must contain 'nofix_qm.f90' file"
+  exit
+fi
+# compilation
+make dynamon -s -C ${DYNAMON}/src EXE="$exe_name" "$@" && echo "Succesful compilation of '$exe_name'"

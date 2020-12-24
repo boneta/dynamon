@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Description: Simple script to import a binary file to default folder
+# Last update: 24/12/2020
+
+# default folder for binaries
+binaries_path=${DYNAMON}/user/binaries
+
+# check no argument
+if [ "$1" == "" ]; then
+  echo "ERROR: No input arguments. Use -h for help."
+  exit
+fi
+# read binary name
+bin_name=$1; shift
+# help
+if [ "$bin_name" == "-h" ] || [ "$bin_name" == "--help" ]; then
+  echo "##  Import tool for binary files"
+  echo ""
+  echo "USAGE:  idynamon <bin_name>"
+  echo ""
+  exit
+fi
+# copy file
+cp $bin_name $binaries_path && echo "Succesful import of '$bin_name'"

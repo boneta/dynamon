@@ -4,7 +4,7 @@
 
 # name of the final executable, destination and fDynamo path
 EXE     ?= dynamon
-EXEPATH ?= ../exe
+EXEPATH ?= ../user/exe
 DYNPATH ?= ../fDynamo
 
 # compiler and flags
