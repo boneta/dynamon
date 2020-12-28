@@ -72,7 +72,7 @@ subroutine chrg_server( code, natm, naqm, atmn, cord, ener, qfit, grad, hess )
   write( 999, "(//)" )
   close( 999 )
 
-  write(*,"(a,f20.10)") "self_charges:", smm
+  ! write(*,"(a,f20.10)") "self_charges:", smm
 
   CALL system( "g09 < calc.com > calc.log" )
 
