@@ -14,7 +14,7 @@ module INITIALIZATION
   implicit none
 
   !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  character(len=128), parameter      :: dynamon_version = '0.2.1'
+  character(len=128), parameter      :: dynamon_version = '0.2.2'
   character(len=512)                 :: dynamon_path                  ! Installation path read from $DYNAMON env variable
   character(len=128)                 :: binaries_path = '/user/binaries/'  ! Relative location from dynamon_path to the binary files (.bin)
 
@@ -84,6 +84,7 @@ module INITIALIZATION
   real(8), allocatable               :: c_dini(:)                     ! Initial distance [A]
   real(8), allocatable               :: c_dend(:)                     ! Ending distance [A]
   real(8), allocatable               :: c_dist(:)                     ! Distance [A]
+  logical, allocatable               :: c_dist_flg(:)                 ! Distance read from input
   real(8), allocatable               :: c_step(:)                     ! Scan step distance [A]
   character(256), allocatable        :: c_file(:)                     ! File naming (dat_)
 
@@ -134,6 +135,7 @@ module INITIALIZATION
     real(8), allocatable               :: c_dini_tmp(:)
     real(8), allocatable               :: c_dend_tmp(:)
     real(8), allocatable               :: c_dist_tmp(:)
+    logical, allocatable               :: c_dist_flg_tmp(:)
     real(8), allocatable               :: c_step_tmp(:)
     character(256), allocatable        :: c_file_tmp(:)
 
@@ -160,6 +162,7 @@ module INITIALIZATION
                 c_dini(c_nconstr), &
                 c_dend(c_nconstr), &
                 c_dist(c_nconstr), &
+                c_dist_flg(c_nconstr), &
                 c_step(c_nconstr), &
                 c_file(c_nconstr), &
                 c_atoms(c_nconstr,4) )
@@ -262,6 +265,7 @@ module INITIALIZATION
                       c_dini_tmp(c_nconstr), &
                       c_dend_tmp(c_nconstr), &
                       c_dist_tmp(c_nconstr), &
+                      c_dist_flg_tmp(c_nconstr), &
                       c_step_tmp(c_nconstr), &
                       c_file_tmp(c_nconstr), &
                       c_atoms_tmp(c_nconstr,4) )
@@ -273,6 +277,7 @@ module INITIALIZATION
             c_dini_tmp(:) = 0
             c_dend_tmp(:) = 0
             c_dist_tmp(:) = 0
+            c_dist_flg_tmp(:) = .false.
             c_step_tmp(:) = 0
             c_file_tmp(:) = ''
             c_atoms_tmp(:,:) = 0
@@ -284,6 +289,7 @@ module INITIALIZATION
             c_dini_tmp(:) = c_dini(:)
             c_dend_tmp(:) = c_dend(:)
             c_dist_tmp(:) = c_dist(:)
+            c_dist_flg_tmp(:) = c_dist_flg(:)
             c_step_tmp(:) = c_step(:)
             c_file_tmp(:) = c_file(:)
             c_atoms_tmp(:,:) = c_atoms(:,:)
@@ -295,6 +301,7 @@ module INITIALIZATION
             CALL move_alloc(c_dini_tmp,c_dini)
             CALL move_alloc(c_dend_tmp,c_dend)
             CALL move_alloc(c_dist_tmp,c_dist)
+            CALL move_alloc(c_dist_flg_tmp,c_dist_flg)
             CALL move_alloc(c_step_tmp,c_step)
             CALL move_alloc(c_file_tmp,c_file)
             CALL move_alloc(c_atoms_tmp,c_atoms)
@@ -329,6 +336,7 @@ module INITIALIZATION
                 case ('DEND')
                   read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
                 case ('DIST','D')
+                  c_dist_flg(c_nconstr) = .true.
                   read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
                 case ('STEP')
                   read(100,*,iostat=io_stat) option, c_step(c_nconstr)
@@ -344,6 +352,7 @@ module INITIALIZATION
             write(*,fmt='(A,A)') "Omitting unknown option: ", arg
         end select
       end do
+      close(unit=100)
       argn = 2
     else
       argn = 1
@@ -399,6 +408,7 @@ module INITIALIZATION
           end do
           argn = argn + c_nconstr - 1
         case ('--DIST')
+          c_dist_flg = .true.
           do i=1, c_nconstr
             CALL GETARG(argn+i, arg)
             read(arg,*,iostat=io_stat) c_dist(i)
@@ -432,8 +442,6 @@ module INITIALIZATION
     else
       coord_name = coord
     end if
-
-    close(unit=100)
 
   end subroutine
 

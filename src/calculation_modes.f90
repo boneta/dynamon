@@ -58,8 +58,6 @@ module CALCULATION_MODES
 
         if (len_trim(name)==0) name = trim(coord_name) // "-loc"
 
-        CALL define_constraints(print_file=.false.)
-
         use_hessian_numerical = .false.
         use_hessian_recalc = 1000
         use_hessian_method = "BOFILL"

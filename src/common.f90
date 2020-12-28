@@ -156,7 +156,12 @@ module COMMON
             end do
 
             ! use distance from .crd if requested
-            if (c_dcrd(i)) c_dist(i) = distance_crd(i)
+            if (c_dcrd(i)) then
+                c_dist(i) = distance_crd(i)
+            ! calculate distance if not from input
+            else if (.not. c_dist_flg(i)) then
+                c_dist(i) = c_dini(i) + c_step(i) * c_indx(i)
+            end if
 
             ! define constraint
             select case (c_type(i))
