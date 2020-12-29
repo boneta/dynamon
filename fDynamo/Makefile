@@ -2,7 +2,7 @@ CC    = gcc
 FC    = gfortran
 
 FLGS  = -I. -J. -w
-FLGS += -DF95 -finit-local-zero -frecord-marker=4
+FLGS += -finit-local-zero -frecord-marker=4
 FLGS += -O3
 
 # FLGS += -DHACK_CHRG  ## Code modified to be always activated and not depend on\

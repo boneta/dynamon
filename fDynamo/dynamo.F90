@@ -197,10 +197,8 @@ CONTAINS
    SUBROUTINE DYNAMO_FOOTER
    !-----------------------
 
-#ifdef F95
    ! . Print out the CPU time.
    CALL TIME_CPU_PRINT
-#endif
 
    ! . Print out the time.
    CALL TIME_PRINT
@@ -233,10 +231,8 @@ CONTAINS
    ! . Print out the time.
    CALL TIME_PRINT
 
-#ifdef F95
    ! . Initialize the CPU time counter.
    CALL TIME_CPU_INITIALIZE
-#endif
 
    END SUBROUTINE DYNAMO_HEADER
 

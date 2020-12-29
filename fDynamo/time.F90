@@ -52,25 +52,17 @@ USE PRINTING, ONLY : PRINT_LINE, PRINT_LINEBREAK, PRINT_PARAGRAPH, PRINT_PARAGRA
 
 IMPLICIT NONE
 PRIVATE
-#ifdef F95
 PUBLIC :: TIME_CPU_INITIALIZE, TIME_CPU_PRINT, TIME_PRINT
-#else
-PUBLIC :: TIME_PRINT
-#endif
 #ifndef PGPC
 SAVE
 #endif
 
-#ifdef F95
 ! . Module scalars.
 REAL :: CPUSTART = 0.0
-#endif
 
 !==============================================================================
 CONTAINS
 !==============================================================================
-
-#ifdef F95
 
    !-----------------------------
    SUBROUTINE TIME_CPU_INITIALIZE
@@ -96,8 +88,6 @@ CONTAINS
    CALL PRINT_PARAGRAPH
 
    END SUBROUTINE TIME_CPU_PRINT
-
-#endif
 
    !--------------------
    SUBROUTINE TIME_PRINT
