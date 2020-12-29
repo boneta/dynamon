@@ -87,7 +87,9 @@ program DYNAMON
 
   deallocate(qm_sele, nofix_sele)
   if (gauss_flg) CALL abinitio_exit
+
   CALL dynamo_footer
+  CALL dynamon_footer
 
 end program
 

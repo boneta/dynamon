@@ -4,7 +4,8 @@
 !
 !  Subroutines
 !  -----------
-!   DYNAMON_HEADER                Print the DYNAMON greeting
+!   DYNAMON_HEADER                Print the DYNAMON greeting and starts time
+!   DYNAMON_FOOTER                Print elapsed time and normal ending
 !   READ_OPTIONS                  Read options from an file in argument
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -17,6 +18,7 @@ module INITIALIZATION
   character(len=128), parameter      :: dynamon_version = '0.2.2'
   character(len=512)                 :: dynamon_path                  ! Installation path read from $DYNAMON env variable
   character(len=128)                 :: binaries_path = '/user/binaries/'  ! Relative location from dynamon_path to the binary files (.bin)
+  integer                            :: t_ini, t_end, clock_rate      ! Elapsed time measurement
 
   !  OPTIONS & DEFAULTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   character(len=128)                 :: MODE = ''                     ! Calculation mode
@@ -104,6 +106,34 @@ module INITIALIZATION
     write(*,fmt='(30X,A22)')           ' _|   _  _  _ _  _ | |'
     write(*,fmt='(30X,A22)')           '(_|\/| |(_|| | |(_)   '
     write(*,fmt='(30X,A22,20X,A1,A8)') '   /                  ','v',dynamon_version
+
+    ! start time counting
+    CALL SYSTEM_CLOCK(t_ini, clock_rate)
+
+  end subroutine
+
+  !  DYNAMON_FOOTER  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine dynamon_footer()
+
+    implicit none
+    real(8)                            :: delta_t
+    integer                            :: sec, min, hour, days
+    real(8)                            :: msec
+
+    ! stop time counting
+    CALL SYSTEM_CLOCK(t_end)
+    delta_t = real(t_end-t_ini)/clock_rate
+
+    ! calculate times
+    msec = MOD(delta_t, 1.)
+    sec  = MOD(delta_t, 60.)
+    min  = MOD(delta_t, 3600.) / 60
+    hour = MOD(delta_t, 86400.) / 3600
+    days = delta_t / 86400
+
+    ! elapsed time and normal ending marker
+    write(*,fmt='(/,A13,9X,I2,A,I0.2,A,I0.2,A,I0.2,F0.3)') 'Elapsed time:', days, '-', hour, ':', min, ':', sec, msec
+    write(*,fmt='(A80)') REPEAT('<',80)
 
   end subroutine
 
