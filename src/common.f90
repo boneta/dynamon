@@ -145,7 +145,7 @@ module COMMON
                 write(str_tmp,*) i
                 c_file(i) = "dat_" // trim(adjustl(str_tmp))
                 do j=1, c_nconstr
-                    write(str_tmp,'(I0.3)') c_indx(j)
+                    write(str_tmp,*) c_indx(j)
                     c_file(i) = trim(c_file(i)) // "." // trim(str_tmp)
                 end do
             end if
