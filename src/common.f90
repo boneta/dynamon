@@ -150,18 +150,18 @@ module COMMON
                 end do
             end if
 
+            ! use distance from .crd if requested
+            if (c_dcrd(i)) then
+                c_dist(i) = distance_crd(i)
+            ! calculate index-based distance if not from input
+            else if (.not. c_dist_flg(i)) then
+                c_dist(i) = c_dini(i) + c_step(i) * c_indx(i)
+            end if
+
             ! define points
             do j=1, 4
                 if (c_atoms(i,j) /= 0) CALL constraint_point_define( atom_selection(atom_number=(/ a_anum( c_atoms(i,j) ) /)) )
             end do
-
-            ! use distance from .crd if requested
-            if (c_dcrd(i)) then
-                c_dist(i) = distance_crd(i)
-            ! calculate distance if not from input
-            else if (.not. c_dist_flg(i)) then
-                c_dist(i) = c_dini(i) + c_step(i) * c_indx(i)
-            end if
 
             ! define constraint
             select case (c_type(i))
@@ -181,13 +181,13 @@ module COMMON
                         CALL constraint_define(type    = 'MULTIPLE_DISTANCE', &
                                                fc      = c_forc(i), &
                                                eq      = c_dist(i), &
-                                               weights = cof_sym(i,:), &
+                                               weights = cof_sym(c_symm(i),:), &
                                                file    = c_file(i))
                     else
                         CALL constraint_define(type    = 'MULTIPLE_DISTANCE', &
                                                fc      = c_forc(i), &
                                                eq      = c_dist(i), &
-                                               weights = cof_sym(i,:))
+                                               weights = cof_sym(c_symm(i),:)))
                     end if
             end select
 
