@@ -249,6 +249,7 @@ module COMMON
 
         integer                            :: i
 
+        CALL energy
         CALL gradient
         do i = 1, 1000
             if( grms < 40._dp ) cycle
@@ -266,16 +267,20 @@ module COMMON
         !--------------------------------------------------------------
 
         ! Minimize Conjugate-Gradient method
-        CALL optimize_conjugate_gradient ( &
-            step_number        = cg_steps, &
-            print_frequency    = 2, &
-            gradient_tolerance = cg_tolerance )
+        if ( cg_steps > 0 ) then
+            CALL optimize_conjugate_gradient ( &
+                step_number        = cg_steps, &
+                print_frequency    = 1, &
+                gradient_tolerance = cg_tolerance )
+        end if
 
         ! Minimize L-BFGS-B
-        CALL optimize_lbfgsb( &
-            step_number        = lbfgsb_steps, &
-            print_frequency    = 1, &
-            gradient_tolerance = lbfgsb_tolerance )
+        if ( lbfgsb_steps > 0 ) then
+            CALL optimize_lbfgsb( &
+                step_number        = lbfgsb_steps, &
+                print_frequency    = 1, &
+                gradient_tolerance = lbfgsb_tolerance )
+        end if
 
     end subroutine
 
