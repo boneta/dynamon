@@ -61,7 +61,9 @@ module COMMON
                 charge       = qm_charge, &
                 multiplicity = qm_multi, &
                 selection    = qm_sele )
-            CALL mopac_scf_options(iterations=500000)
+            CALL mopac_scf_options( &
+                force_uhf  = force_uhf, &
+                iterations = 500000)
         end if
 
         CALL my_sele( nofix_sele )
@@ -110,11 +112,23 @@ module COMMON
         real(8)                            :: distance_crd
 
         select case(c_type(n))
-            case (1)
-                distance_crd = geometry_distance(atmcrd, a_anum(c_atoms(n,1)), a_anum(c_atoms(n,2)))
-            case (2)
-                distance_crd = geometry_distance(atmcrd, a_anum(c_atoms(n,1)), a_anum(c_atoms(n,2))) &
-                 + c_symm(n) * geometry_distance(atmcrd, a_anum(c_atoms(n,3)), a_anum(c_atoms(n,4)))
+            case ('ANGLE')
+                distance_crd = GEOMETRY_ANGLE(atmcrd, a_anum(c_atoms(n,1)), &
+                                                      a_anum(c_atoms(n,2)), &
+                                                      a_anum(c_atoms(n,3)))
+            case ('DIHEDRAL')
+                distance_crd = GEOMETRY_DIHEDRAL(atmcrd, a_anum(c_atoms(n,1)), &
+                                                         a_anum(c_atoms(n,2)), &
+                                                         a_anum(c_atoms(n,3)), &
+                                                         a_anum(c_atoms(n,4)))
+            case ('DISTANCE','>DISTANCE','<DISTANCE')
+                distance_crd = GEOMETRY_DISTANCE(atmcrd, a_anum(c_atoms(n,1)), &
+                                                         a_anum(c_atoms(n,2)))
+            case ('MULTIPLE_DISTANCE')
+                distance_crd = GEOMETRY_DISTANCE(atmcrd, a_anum(c_atoms(n,1)), &
+                                                         a_anum(c_atoms(n,2))) &
+                 + c_symm(n) * GEOMETRY_DISTANCE(atmcrd, a_anum(c_atoms(n,3)), &
+                                                         a_anum(c_atoms(n,4)))
         end select
 
     end function
@@ -159,32 +173,32 @@ module COMMON
             end if
 
             ! define points
-            do j=1, 4
+            do j=1, c_npoint(i)
                 if (c_atoms(i,j) /= 0) CALL constraint_point_define( atom_selection(atom_number=(/ a_anum( c_atoms(i,j) ) /)) )
             end do
 
             ! define constraint
             select case (c_type(i))
-                case (1)
+                case ('ANGLE','DIHEDRAL','DISTANCE','>DISTANCE','<DISTANCE')
                     if (print_file) then
-                        CALL constraint_define(type = 'DISTANCE', &
+                        CALL constraint_define(type = trim(c_type(i)), &
                                                fc   = c_forc(i), &
                                                eq   = c_dist(i), &
                                                file = c_file(i))
                     else
-                        CALL constraint_define(type = 'DISTANCE', &
+                        CALL constraint_define(type = trim(c_type(i)), &
                                                fc   = c_forc(i), &
                                                eq   = c_dist(i))
                     end if
-                case (2)
+                case ('MULTIPLE_DISTANCE')
                     if (print_file) then
-                        CALL constraint_define(type    = 'MULTIPLE_DISTANCE', &
+                        CALL constraint_define(type    = trim(c_type(i)), &
                                                fc      = c_forc(i), &
                                                eq      = c_dist(i), &
                                                weights = cof_sym(c_symm(i),:), &
                                                file    = c_file(i))
                     else
-                        CALL constraint_define(type    = 'MULTIPLE_DISTANCE', &
+                        CALL constraint_define(type    = trim(c_type(i)), &
                                                fc      = c_forc(i), &
                                                eq      = c_dist(i), &
                                                weights = cof_sym(c_symm(i),:))

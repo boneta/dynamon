@@ -72,9 +72,9 @@ program DYNAMON
     case ('IRC')
       CALL print_mode('IRC CALCULATION')
       CALL dynamon_irc
-    case ('DYNAMIC')
+    case ('MD','PMF')
       CALL print_mode('MOLECULAR DYNAMICS CALCULATION')
-      CALL dynamon_dynamic
+      CALL dynamon_md
     case ('INTERACTION')
       CALL print_mode('INTERACTION CALCULATION')
       CALL dynamon_interaction
@@ -82,7 +82,8 @@ program DYNAMON
       CALL print_mode('KIE CALCULATION')
       CALL dynamon_kie
     case DEFAULT
-      STOP 'UNKOWN MODE'
+      write(*,fmt='(A)') 'ERROR: UNKOWN MODE'
+      STOP
   end select
 
   deallocate(qm_sele, nofix_sele)

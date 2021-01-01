@@ -8,7 +8,7 @@
 !   DYNAMON_MINIMIZATION          Structure optimization
 !   DYNAMON_LOCATE                Localize and characterize minima or saddle point
 !   DYNAMON_IRC                   Internal Reaction Coordinate from TS
-!   DYNAMON_DYNAMIC               BO Molecular Dynamics
+!   DYNAMON_MD                    BO Molecular Dynamics simulation
 !   DYNAMON_INTERACTION           Electrostatic and Lennard-Jones interactions
 !   DYNAMON_KIE                   Kinetic Isotope Effect
 !
@@ -506,13 +506,13 @@ module CALCULATION_MODES
 
     end subroutine
 
-    !  DYNAMON_DYNAMIC  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine dynamon_dynamic()
+    !  DYNAMON_MD  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine dynamon_md()
 
         integer                            :: my_random
         real(8)                            :: fortran_random
 
-        if (len_trim(name)==0) name = trim(coord_name) // "-dyn"
+        if (len_trim(name)==0) name = trim(coord_name) // "-md"
 
         CALL define_constraints(print_file=.true.)
         CALL calculate_gradient
