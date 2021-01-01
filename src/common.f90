@@ -146,7 +146,7 @@ module COMMON
                 c_file(i) = "dat_" // trim(adjustl(str_tmp))
                 do j=1, c_nconstr
                     write(str_tmp,*) c_indx(j)
-                    c_file(i) = trim(c_file(i)) // "." // trim(str_tmp)
+                    c_file(i) = trim(c_file(i)) // "." // trim(adjustl(str_tmp))
                 end do
             end if
 
@@ -187,7 +187,7 @@ module COMMON
                         CALL constraint_define(type    = 'MULTIPLE_DISTANCE', &
                                                fc      = c_forc(i), &
                                                eq      = c_dist(i), &
-                                               weights = cof_sym(c_symm(i),:)))
+                                               weights = cof_sym(c_symm(i),:))
                     end if
             end select
 
