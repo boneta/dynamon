@@ -73,13 +73,13 @@ module INITIALIZATION
     character(len=256)                 :: kie_hess = 'update.dump'    ! Hessian file
 
     integer                            :: a_natoms = 0                ! Number of input atoms
-    character(64), allocatable         :: a_atoms(:,:)                ! Input atoms (subsystem, residue_number, atom_name)
+    character(len=64), allocatable     :: a_atoms(:,:)                ! Input atoms (subsystem, residue_number, atom_name)
     integer, allocatable               :: a_anum(:)                   ! Atom numbers (from atom_number)
 
     logical                            :: constr_flg = .false.        ! Apply constraints
     integer                            :: c_nconstr = 0               ! Number of contraints
     integer, allocatable               :: c_indx(:)                   ! Constraints indexes (i,j)
-    character(64), allocatable         :: c_type(:)                   ! Constraints type
+    character(len=64), allocatable     :: c_type(:)                   ! Constraints type
     integer, allocatable               :: c_npoint(:)                 ! Constraints number of definition points (atoms)
     integer, allocatable               :: c_symm(:)                   ! Constraints symmetry {-1,0,1}
     real(8), allocatable               :: c_forc(:)                   ! Constraints force [J·A^-n]
@@ -90,7 +90,7 @@ module INITIALIZATION
     real(8), allocatable               :: c_dist(:)                   ! Distance [A]
     logical, allocatable               :: c_dist_flg(:)               ! Distance read from input
     real(8), allocatable               :: c_step(:)                   ! Scan step distance [A]
-    character(256), allocatable        :: c_file(:)                   ! File naming (dat_)
+    character(len=256), allocatable    :: c_file(:)                   ! File naming (dat_)
 
     !  DYNAMO RECURRING VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     logical, allocatable               :: qm_sele(:)                  ! QM region atoms (aka 'acs')
@@ -165,9 +165,9 @@ contains
         integer                            :: io_stat
         integer                            :: dot_position
 
-        character(10), allocatable         :: a_atoms_tmp(:,:)
+        character(len=64), allocatable     :: a_atoms_tmp(:,:)
         integer, allocatable               :: c_indx_tmp(:)
-        character(64), allocatable         :: c_type_tmp(:)
+        character(len=64), allocatable     :: c_type_tmp(:)
         integer, allocatable               :: c_npoint_tmp(:)
         integer, allocatable               :: c_symm_tmp(:)
         real(8), allocatable               :: c_forc_tmp(:)
@@ -178,7 +178,7 @@ contains
         real(8), allocatable               :: c_dist_tmp(:)
         logical, allocatable               :: c_dist_flg_tmp(:)
         real(8), allocatable               :: c_step_tmp(:)
-        character(256), allocatable        :: c_file_tmp(:)
+        character(len=256), allocatable    :: c_file_tmp(:)
 
         ! check no argument
         if (COMMAND_ARGUMENT_COUNT() == 0) then
@@ -294,6 +294,7 @@ contains
                     case ('ATOM','A')
                         a_natoms = a_natoms + 1
                         allocate(a_atoms_tmp(a_natoms,3))
+                        a_atoms_tmp(:,:) = ''
                         a_atoms_tmp(:,:) = a_atoms(:,:)
                         CALL move_alloc(a_atoms_tmp,a_atoms)
                         read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
@@ -329,6 +330,7 @@ contains
                         c_atoms_tmp(:,:) = 0
                         c_indx_tmp(:) = c_indx(:)
                         c_type_tmp(:) = c_type(:)
+                        c_npoint_tmp(:) = c_npoint(:)
                         c_symm_tmp(:) = c_symm(:)
                         c_forc_tmp(:) = c_forc(:)
                         c_dcrd_tmp(:) = c_dcrd(:)
