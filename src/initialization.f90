@@ -15,7 +15,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=128), parameter      :: dynamon_version = '0.2.3'
+    character(len=64), parameter       :: dynamon_version = '0.2.4'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: binaries_path = '/user/binaries/'  ! Relative location from dynamon_path to the binary files (.bin)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -35,10 +35,10 @@ module INITIALIZATION
     integer                            :: qm_multi = 1                ! QM-region multiplicity
     logical                            :: force_uhf = .false.         ! Force to unrestricted calculation
 
-    character(len=50)                  :: semiemp = 'AM1'             ! Semi-empirical method
+    character(len=64)                  :: semiemp = 'AM1'             ! Semi-empirical method
     logical                            :: gauss_flg = .false.         ! Call GAUSSIAN
-    character(len=50)                  :: dft_func = 'M062X'          ! DFT functional
-    character(len=50)                  :: dft_basis = '6-31+G(d,p)'   ! DFT basis set
+    character(len=64)                  :: dft_func = 'M062X'          ! DFT functional
+    character(len=64)                  :: dft_basis = '6-31+G(d,p)'   ! DFT basis set
 
     integer                            :: cg_steps = 10000            ! CG max number of steps
     real(8)                            :: cg_tolerance = 0.2          ! CG convergence
@@ -67,7 +67,7 @@ module INITIALIZATION
     integer                            :: int_wbox(2) = 0             ! First and last residue number for Water Box atoms
     integer                            :: int_ions(2) = 0             ! First and last residue number for Ions atoms
 
-    integer                            :: kie_atomn = 0               ! Atom number to calculate KIE
+    character(len=64)                  :: kie_atom(3) = ''            ! Atom to calculate KIE (subsystem, residue_number, atom_name)
     integer                            :: kie_skip = 0                ! Number of frequencies to skip
     real(8)                            :: kie_mass = 2.01410177812D0  ! New mass to substitute in the atom
     character(len=256)                 :: kie_hess = 'update.dump'    ! Hessian file
@@ -283,8 +283,8 @@ contains
                         read(100,*,iostat=io_stat) option, int_wbox(:)
                     case ('INT_IONS')
                         read(100,*,iostat=io_stat) option, int_ions(:)
-                    case ('KIE_ATOMN')
-                        read(100,*,iostat=io_stat) option, kie_atomn
+                    case ('KIE_ATOM')
+                        read(100,*,iostat=io_stat) option, kie_atom
                     case ('KIE_SKIP')
                         read(100,*,iostat=io_stat) option, kie_skip
                     case ('KIE_MASS')
@@ -455,6 +455,10 @@ contains
                     read(arg,'(A)',iostat=io_stat) dft_func
                 case ('--BASIS')
                     read(arg,'(A)',iostat=io_stat) dft_basis
+                case ('--CG_TOLERANCE')
+                    read(arg,*,iostat=io_stat) cg_tolerance
+                case ('--LBFGSB_TOLERANCE')
+                    read(arg,*,iostat=io_stat) lbfgsb_tolerance
                 case ('--TEMP')
                     read(arg,*,iostat=io_stat) temp
                 case ('--EQUI')
@@ -463,10 +467,16 @@ contains
                     read(arg,*,iostat=io_stat) production
                 case ('--VEL')
                     read(arg,'(A)',iostat=io_stat) velocities
+                case ('--LOC_STEPS')
+                    read(arg,*,iostat=io_stat) loc_steps
                 case ('--TS')
                     read(arg,*,iostat=io_stat) ts_search
                 case ('--IRC_DIR')
                     read(arg,*,iostat=io_stat) irc_dir
+                case ('--KIE_SKIP')
+                    read(arg,*,iostat=io_stat) kie_skip
+                case ('--KIE_HESS')
+                    read(arg,*,iostat=io_stat) kie_hess
                 case ('--N')
                     do i=1, c_nconstr
                         CALL GETARG(argn+i, arg)

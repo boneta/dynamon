@@ -33,16 +33,23 @@ the following argument.
 | --BASIS          | *char* | DFT basis set (for Gaussian) |
 
 #### Mode-specific
-|   ARGUMENT NAME  | TYPE   | DESCRIPTION |
-| :--------------- | :--:   | ----------- |
-| --TEMP           | *real* | Temperature [k] |
-| --EQUI           | *int*  | Number of steps of equilibration |
-| --PROD           | *int*  | Number of steps of production |
-| --VEL            | *char* | Velocities file to read instead of generate random (for continuations) |
+|   ARGUMENT NAME    | TYPE   | DESCRIPTION |
+| :--------------    | :--:   | ----------- |
+| --CG_TOLERANCE     | *real* | Conjugate-Gradient convergence criteria |
+| --LBFGSB_TOLERANCE | *real* | L-BFGSB convergence criteria |
 | | |
-| --TS             | *bool* | Search for a saddle point (transition state) |
+| --TEMP             | *real* | Temperature [k] |
+| --EQUI             | *int*  | Number of steps of equilibration |
+| --PROD             | *int*  | Number of steps of production |
+| --VEL              | *char* | Velocities file to read instead of generate random (for continuations) |
 | | |
-| --IRC_DIR        | *int*  | Initial direction to follow {-1,1} |
+| --LOC_STEPS        | *int*  | Baker search maximum number of steps |
+| --TS               | *bool* | Search for a saddle point (transition state) |
+| | |
+| --IRC_DIR          | *int*  | Initial direction to follow {-1,1} |
+| | |
+| --KIE_SKIP         | *int*  | Number of frequencies to skip |
+| --KIE_HESS         | *char* | Hessian file |
 
 #### Constraints
 The definition of constraints is necessarily made through an input file, although

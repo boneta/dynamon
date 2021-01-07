@@ -676,8 +676,16 @@ module CALCULATION_MODES
         implicit none
 
         integer                            :: n
+        integer                            :: nres_tmp
+        integer                            :: kie_anum
         real( kind=dp )                    :: pres = 1.D0
         real( kind=dp )                    :: gxh, gxd
+
+        ! obtain atom number
+        read(kie_atom(2),*) nres_tmp
+        kie_anum = atom_number(subsystem      = kie_atom(1), &
+                               residue_number = nres_tmp, &
+                               atom_name      = kie_atom(3) )
 
         n = count( qm_sele )
         allocate( atmhes(1:3*n*(3*n+1)/2) )
@@ -690,7 +698,7 @@ module CALCULATION_MODES
         CALL gibbs_energy( pres, temp, 1.0d0, kie_skip, gxh )
 
         ! change masses
-        atmmas(kie_atomn) = kie_mass
+        atmmas(kie_anum) = kie_mass
 
         ! isotopic reactants/ts energy
         CALL coordinates_read( trim( coord ) )

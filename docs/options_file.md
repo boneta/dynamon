@@ -86,12 +86,12 @@ String arguments that contains slashes or commas should be between quotes.
 | INT_IONS         | *int* *int* | -       | First and last residue number for Ions atoms |
 
 #### KIE
-|   OPTION NAME    | TYPE   | DEFAULT | DESCRIPTION |
-| :--------------- | :--:   | :-----: | ----------- |
-| KIE_ATOMN        | *int*  | -           | Atom number to calculate KIE |
-| KIE_SKIP         | *int*  | 0           | Number of frequencies to skip |
-| KIE_MASS         | *real* | 2.01410     | New mass for the atom |
-| KIE_HESS         | *char* | update.dump | Hessian file |
+|   OPTION NAME    | TYPE                | DEFAULT     | DESCRIPTION |
+| :--------------- | :--:                | :-----:     | ----------- |
+| KIE_ATOM         | *char* *int* *char* | -           | Atom to calculate KIE (subsystem, residue number, atom name) |
+| KIE_SKIP         | *int*               | 0           | Number of frequencies to skip |
+| KIE_MASS         | *real*              | 2.01410     | New mass for the atom |
+| KIE_HESS         | *char*              | update.dump | Hessian file |
 
 #### Constraints
 An arbitrary number of constraints can be applied on almost every kind of calculation. \
@@ -109,7 +109,7 @@ The distances for the constraint are taken from the coordinates file (.crd) if D
 If not, it would be directly set through DIST argument and if absent, it is calculated taking into
 account N, DINIT and STEP options.
 
-###### Constraint types
+##### Constraint types
 | TYPE NAME         | ALT NAME |
 | :--------         | :------- |
 | ANGLE             | -        |
@@ -119,7 +119,7 @@ account N, DINIT and STEP options.
 | <DISTANCE         | <d, <d   |
 | MULTIPLE_DISTANCE | M, m     |
 
-###### Constraint options
+##### Constraint options
 |   OPTION NAME    | TYPE   | DESCRIPTION |
 | :--------------- | :--:   | ----------- |
 | SYMM             | *int*  | Symmetry for multiple distance {-1,1} |

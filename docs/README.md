@@ -7,7 +7,7 @@ Several main calculation modes are available to be chosen at runtime. It must be
 specified in upper cases.
 
 | MODE NAME | ALT NAMES | DESCRIPTION |
-| :-------- | :-------- | :---------- |
+| :-------- | :-------- | ----------- |
 | SP          | CORR      | Single point calculation |
 | MINI        | SCAN, PES | Geometrical optimization |
 | LOCATE      | -         | Find a stationary point or TS |
