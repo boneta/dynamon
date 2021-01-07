@@ -1,0 +1,24 @@
+MODE    MINI
+
+COORD  hbdef1.crd
+BIN    hbdef1.bin
+
+CHARGE  0
+MULTI  1
+GAUSS  F
+
+ATOM  A 2 ND1
+ATOM  A 2 HD1
+ATOM  A 1 OD1
+
+CONSTR D
+    ATOMS  1 2
+    FORCE  1000
+    DCRD  True
+C
+CONSTR M
+    SYMM  -1
+    ATOMS  2 3 3 1
+    FORCE  1000
+    DCRD  True
+C
