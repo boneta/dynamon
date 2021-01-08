@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Description: Script to compile a generic user-defined program with fDynamo and DYNAMON support
+# Last update: 08/01/2021
+
+# check no argument
+if [ "$1" == "" ]; then
+  echo "ERROR: No input arguments. Use -h for help."
+  exit
+fi
+# read source file
+src_file=$1; shift
+# help
+if [ "$src_file" == "-h" ] || [ "$src_file" == "--help" ]; then
+  echo "##  Compilation wrapper for a generic program "
+  echo "##  with fDynamo and DYNAMON support"
+  echo ""
+  echo "USAGE:  dynn-gcompile <.f90>"
+  echo ""
+  exit
+fi
+# compilation parameters
+FC="gfortran"
+Olevel="-O3"
+LIB="-J. -I${DYNAMON}/fDynamo -I${DYNAMON}/src -I${PWD}"
+FFLAGS="${Olevel} -finit-local-zero -frecord-marker=4 ${LIB}"
+# compilation
+${FC} ${FFLAGS} ${src_file} ${DYNAMON}/fDynamo/dynamo.a
