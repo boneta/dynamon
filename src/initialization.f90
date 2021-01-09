@@ -154,6 +154,8 @@ contains
         ! Read options from a .dynn file pased as first argument
         !--------------------------------------------------------------
 
+        use utils
+
         implicit none
 
         integer                            :: i
@@ -166,19 +168,7 @@ contains
         integer                            :: dot_position
 
         character(len=64), allocatable     :: a_atoms_tmp(:,:)
-        integer, allocatable               :: c_indx_tmp(:)
-        character(len=64), allocatable     :: c_type_tmp(:)
-        integer, allocatable               :: c_npoint_tmp(:)
-        integer, allocatable               :: c_symm_tmp(:)
-        real(8), allocatable               :: c_forc_tmp(:)
         integer, allocatable               :: c_atoms_tmp(:,:)
-        logical, allocatable               :: c_dcrd_tmp(:)
-        real(8), allocatable               :: c_dini_tmp(:)
-        real(8), allocatable               :: c_dend_tmp(:)
-        real(8), allocatable               :: c_dist_tmp(:)
-        logical, allocatable               :: c_dist_flg_tmp(:)
-        real(8), allocatable               :: c_step_tmp(:)
-        character(len=256), allocatable    :: c_file_tmp(:)
 
         ! check no argument
         if (COMMAND_ARGUMENT_COUNT() == 0) then
@@ -301,58 +291,23 @@ contains
                     case ('CONSTR','C')
                         constr_flg = .true.
                         c_nconstr = c_nconstr + 1
+                        ! character(len=64), allocatable     :: a_atoms_tmp(:,:)
                         ! increment arrays
-                        allocate( c_indx_tmp(c_nconstr), &
-                                  c_type_tmp(c_nconstr), &
-                                  c_npoint_tmp(c_nconstr), &
-                                  c_symm_tmp(c_nconstr), &
-                                  c_forc_tmp(c_nconstr), &
-                                  c_dcrd_tmp(c_nconstr), &
-                                  c_dini_tmp(c_nconstr), &
-                                  c_dend_tmp(c_nconstr), &
-                                  c_dist_tmp(c_nconstr), &
-                                  c_dist_flg_tmp(c_nconstr), &
-                                  c_step_tmp(c_nconstr), &
-                                  c_file_tmp(c_nconstr), &
-                                  c_atoms_tmp(c_nconstr,4) )
-                        c_indx_tmp(:) = 0
-                        c_type_tmp(:) = ''
-                        c_npoint_tmp(:) = 0
-                        c_symm_tmp(:) = 0
-                        c_forc_tmp(:) = 0
-                        c_dcrd_tmp(:) = .false.
-                        c_dini_tmp(:) = 0
-                        c_dend_tmp(:) = 0
-                        c_dist_tmp(:) = 0
-                        c_dist_flg_tmp(:) = .false.
-                        c_step_tmp(:) = 0
-                        c_file_tmp(:) = ''
+                        CALL append_1d(c_indx)
+                        CALL append_1d(c_npoint)
+                        CALL append_1d(c_symm)
+                        CALL append_1d(c_forc)
+                        CALL append_1d(c_dini)
+                        CALL append_1d(c_dend)
+                        CALL append_1d(c_dist)
+                        CALL append_1d(c_step)
+                        CALL append_1d(c_dcrd)
+                        CALL append_1d(c_dist_flg)
+                        CALL append_1d(c_type)
+                        CALL append_1d(c_file)
+                        allocate( c_atoms_tmp(c_nconstr,4) )
                         c_atoms_tmp(:,:) = 0
-                        c_indx_tmp(:) = c_indx(:)
-                        c_type_tmp(:) = c_type(:)
-                        c_npoint_tmp(:) = c_npoint(:)
-                        c_symm_tmp(:) = c_symm(:)
-                        c_forc_tmp(:) = c_forc(:)
-                        c_dcrd_tmp(:) = c_dcrd(:)
-                        c_dini_tmp(:) = c_dini(:)
-                        c_dend_tmp(:) = c_dend(:)
-                        c_dist_tmp(:) = c_dist(:)
-                        c_dist_flg_tmp(:) = c_dist_flg(:)
-                        c_step_tmp(:) = c_step(:)
-                        c_file_tmp(:) = c_file(:)
                         c_atoms_tmp(:,:) = c_atoms(:,:)
-                        CALL move_alloc(c_indx_tmp,c_indx)
-                        CALL move_alloc(c_type_tmp,c_type)
-                        CALL move_alloc(c_npoint_tmp,c_npoint)
-                        CALL move_alloc(c_symm_tmp,c_symm)
-                        CALL move_alloc(c_forc_tmp,c_forc)
-                        CALL move_alloc(c_dcrd_tmp,c_dcrd)
-                        CALL move_alloc(c_dini_tmp,c_dini)
-                        CALL move_alloc(c_dend_tmp,c_dend)
-                        CALL move_alloc(c_dist_tmp,c_dist)
-                        CALL move_alloc(c_dist_flg_tmp,c_dist_flg)
-                        CALL move_alloc(c_step_tmp,c_step)
-                        CALL move_alloc(c_file_tmp,c_file)
                         CALL move_alloc(c_atoms_tmp,c_atoms)
                         ! type of constraint
                         read(100,*,iostat=io_stat) option, arg

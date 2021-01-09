@@ -15,7 +15,8 @@ FFLAGS   = $(Olevel) -finit-local-zero -frecord-marker=4 \
 
 #----------------------------------------------------------------------
 
-OBJS := initialization.f90 \
+OBJS := utils.f90 \
+        initialization.f90 \
         common.f90 \
         panadero.f90 \
         calculation_modes.f90 \
