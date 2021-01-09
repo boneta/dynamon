@@ -6,7 +6,8 @@
 !  -----------
 !   DYNAMON_HEADER                Print the DYNAMON greeting and starts time
 !   DYNAMON_FOOTER                Print elapsed time and normal ending
-!   READ_OPTIONS                  Read options from an file in argument
+!   READ_FILE                     Read options from a .dynn file
+!   OPTIONS_INTERFACE             Set options from first-argument input file and CLI arguments
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -147,14 +148,235 @@ contains
 
     end subroutine
 
-    !  READ_OPTIONS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine read_options()
+    !  READ_FILE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine read_file(filename, print_warnings)
 
         !--------------------------------------------------------------
-        ! Read options from a .dynn file pased as first argument
+        ! Read options from a .dynn file
         !--------------------------------------------------------------
 
         use utils
+
+        implicit none
+
+        character(len=*), intent(in)       :: filename
+        logical, intent(in), optional      :: print_warnings
+
+        logical                            :: p_warn
+        character(len=20)                  :: option
+        character(len=512)                 :: arg
+        integer                            :: io_stat
+
+        character(len=64), allocatable     :: a_atoms_tmp(:,:)
+        integer, allocatable               :: c_atoms_tmp(:,:)
+
+        if (PRESENT(print_warnings)) then
+            p_warn = print_warnings
+        else
+            p_warn = .false.
+        end if
+
+        ! allocate arrays
+        allocate( a_atoms(a_natoms,3), &
+                  c_indx(c_nconstr), &
+                  c_type(c_nconstr), &
+                  c_npoint(c_nconstr), &
+                  c_symm(c_nconstr), &
+                  c_forc(c_nconstr), &
+                  c_dcrd(c_nconstr), &
+                  c_dini(c_nconstr), &
+                  c_dend(c_nconstr), &
+                  c_dist(c_nconstr), &
+                  c_dist_flg(c_nconstr), &
+                  c_step(c_nconstr), &
+                  c_file(c_nconstr), &
+                  c_atoms(c_nconstr,4) )
+
+        ! read line by line and asign general variables
+        open(unit=100, file=filename, status='old', action='read', form='formatted')
+        do
+            read(100, *, iostat=io_stat) option
+            if (io_stat/=0) exit
+            if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+            backspace(100)
+            select case (trim(option))   !FIXME: Make it case insensitive
+                case ('MODE')
+                    read(100,*,iostat=io_stat) option, mode
+                case ('NAME')
+                    read(100,*,iostat=io_stat) option, name
+                case ('BIN')
+                    read(100,*,iostat=io_stat) option, sys_bin
+                case ('COORD')
+                    read(100,*,iostat=io_stat) option, coord
+                case ('CORES')
+                    read(100,*,iostat=io_stat) option, cores
+                case ('MEMORY')
+                    read(100,*,iostat=io_stat) option, memory
+                case ('CHARGE')
+                    read(100,*,iostat=io_stat) option, qm_charge
+                case ('MULTI')
+                    read(100,*,iostat=io_stat) option, qm_multi
+                case ('FORCE_UHF')
+                    read(100,*,iostat=io_stat) option, force_uhf
+                case ('SEMIEMP')
+                    read(100,*,iostat=io_stat) option, semiemp
+                case ('GAUSS')
+                    read(100,*,iostat=io_stat) option, gauss_flg
+                case ('FUNC')
+                    read(100,*,iostat=io_stat) option, dft_func
+                case ('BASIS')
+                    read(100,*,iostat=io_stat) option, dft_basis
+                case ('CG_STEPS')
+                    read(100,*,iostat=io_stat) option, cg_steps
+                case ('CG_TOLERANCE')
+                    read(100,*,iostat=io_stat) option, cg_tolerance
+                case ('LBFGSB_STEPS')
+                    read(100,*,iostat=io_stat) option, lbfgsb_steps
+                case ('LBFGSB_TOLERANCE')
+                    read(100,*,iostat=io_stat) option, lbfgsb_tolerance
+                case ('TEMP')
+                    read(100,*,iostat=io_stat) option, temp
+                case ('MD_STEP')
+                    read(100,*,iostat=io_stat) option, md_step
+                case ('EQUI')
+                    read(100,*,iostat=io_stat) option, equilibration
+                case ('PROD')
+                    read(100,*,iostat=io_stat) option, production
+                case ('DCD_FREQ')
+                    read(100,*,iostat=io_stat) option, dcd_freq
+                case ('VEL')
+                    read(100,*,iostat=io_stat) option, velocities
+                case ('PBC')
+                    read(100,*,iostat=io_stat) option, pbc
+                case ('LOC_STEPS')
+                    read(100,*,iostat=io_stat) option, loc_steps
+                case ('LOC_TOLERANCE')
+                    read(100,*,iostat=io_stat) option, loc_tolerance
+                case ('TS')
+                    read(100,*,iostat=io_stat) option, ts_search
+                case ('IRC_DIR')
+                    read(100,*,iostat=io_stat) option, irc_dir
+                case ('IRC_STEPS')
+                    read(100,*,iostat=io_stat) option, irc_steps
+                case ('IRC_DSP')
+                    read(100,*,iostat=io_stat) option, irc_dsp
+                case ('INT_NINT')
+                    read(100,*,iostat=io_stat) option, int_nint
+                case ('INT_NRES')
+                    read(100,*,iostat=io_stat) option, int_nres
+                case ('INT_WBOX')
+                    read(100,*,iostat=io_stat) option, int_wbox(:)
+                case ('INT_IONS')
+                    read(100,*,iostat=io_stat) option, int_ions(:)
+                case ('KIE_ATOM')
+                    read(100,*,iostat=io_stat) option, kie_atom
+                case ('KIE_SKIP')
+                    read(100,*,iostat=io_stat) option, kie_skip
+                case ('KIE_MASS')
+                    read(100,*,iostat=io_stat) option, kie_mass
+                case ('KIE_HESS')
+                    read(100,*,iostat=io_stat) option, kie_hess
+                case ('ATOM','A')
+                    a_natoms = a_natoms + 1
+                    allocate(a_atoms_tmp(a_natoms,3))
+                    a_atoms_tmp(:,:) = ''
+                    a_atoms_tmp(:,:) = a_atoms(:,:)
+                    CALL MOVE_ALLOC(a_atoms_tmp,a_atoms)
+                    read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
+                case ('CONSTR','C')
+                    constr_flg = .true.
+                    c_nconstr = c_nconstr + 1
+                    ! increment arrays
+                    CALL append_1d(c_indx)
+                    CALL append_1d(c_npoint)
+                    CALL append_1d(c_symm)
+                    CALL append_1d(c_forc)
+                    CALL append_1d(c_dini)
+                    CALL append_1d(c_dend)
+                    CALL append_1d(c_dist)
+                    CALL append_1d(c_step)
+                    CALL append_1d(c_dcrd)
+                    CALL append_1d(c_dist_flg)
+                    CALL append_1d(c_type)
+                    CALL append_1d(c_file)
+                    allocate( c_atoms_tmp(c_nconstr,4) )
+                    c_atoms_tmp(:,:) = 0
+                    c_atoms_tmp(:,:) = c_atoms(:,:)
+                    CALL MOVE_ALLOC(c_atoms_tmp,c_atoms)
+                    ! type of constraint
+                    read(100,*,iostat=io_stat) option, arg
+                    select case (trim(arg))
+                        case ('ANGLE')
+                            c_type(c_nconstr) = 'ANGLE'
+                            c_npoint(c_nconstr) = 3
+                        case ('DIHEDRAL')
+                            c_type(c_nconstr) = 'DIHEDRAL'
+                            c_npoint(c_nconstr) = 4
+                        case ('DISTANCE','D','d')
+                            c_type(c_nconstr) = 'DISTANCE'
+                            c_npoint(c_nconstr) = 2
+                        case ('>DISTANCE','>D','>d')
+                            c_type(c_nconstr) = '>DISTANCE'
+                            c_npoint(c_nconstr) = 2
+                        case ('<DISTANCE','<D','<d')
+                            c_type(c_nconstr) = '<DISTANCE'
+                            c_npoint(c_nconstr) = 2
+                        case ('MULTIPLE_DISTANCE','M','m')
+                            c_type(c_nconstr) = 'MULTIPLE_DISTANCE'
+                            c_npoint(c_nconstr) = 4
+                        case DEFAULT
+                            write(*,fmt='(A)') 'ERROR: Unkown constraint type'
+                            STOP
+                    end select
+                    ! read all constraint options
+                    do
+                        read(100, *, iostat=io_stat) option
+                        if (io_stat/=0) exit
+                        if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
+                        if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+                        backspace(100)
+                        select case (trim(option))
+                            case ('SYMM')
+                                read(100,*,iostat=io_stat) option, c_symm(c_nconstr)
+                            case ('N')
+                                read(100,*,iostat=io_stat) option, c_indx(c_nconstr)
+                            case ('ATOMS')
+                                read(100,*,iostat=io_stat) option, c_atoms(c_nconstr,1:c_npoint(c_nconstr))
+                            case ('FORCE')
+                                read(100,*,iostat=io_stat) option, c_forc(c_nconstr)
+                            case ('DCRD')
+                                read(100,*,iostat=io_stat) option, c_dcrd(c_nconstr)
+                            case ('DINIT')
+                                read(100,*,iostat=io_stat) option, c_dini(c_nconstr)
+                            case ('DEND')
+                                read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
+                            case ('DIST','D')
+                                c_dist_flg(c_nconstr) = .true.
+                                read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
+                            case ('STEP')
+                                read(100,*,iostat=io_stat) option, c_step(c_nconstr)
+                            case ('DFILE')
+                                read(100,*,iostat=io_stat) option, c_file(c_nconstr)
+                            case DEFAULT
+                                read(100,*) arg
+                                if (p_warn) write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+                        end select
+                    end do
+                case DEFAULT
+                    read(100,*) arg
+                    if (p_warn) write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+            end select
+        end do
+        close(unit=100)
+
+    end subroutine
+
+    !  OPTIONS_INTERFACE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine options_interface()
+
+        !--------------------------------------------------------------
+        ! Set options from first-argument input file and CLI arguments
+        !--------------------------------------------------------------
 
         implicit none
 
@@ -166,9 +388,6 @@ contains
         logical                            :: f_exist
         integer                            :: io_stat
         integer                            :: dot_position
-
-        character(len=64), allocatable     :: a_atoms_tmp(:,:)
-        integer, allocatable               :: c_atoms_tmp(:,:)
 
         ! check no argument
         if (COMMAND_ARGUMENT_COUNT() == 0) then
@@ -182,198 +401,7 @@ contains
         INQUIRE(file=trim(input_file),exist=f_exist)
         if (f_exist) then
             write(*,fmt='(/,A,A)') "Options read from ", trim(input_file)
-            open(unit=100, file=input_file, status='old', action='read', form='formatted')
-            ! allocate arrays
-            allocate( a_atoms(a_natoms,3), &
-                      c_indx(c_nconstr), &
-                      c_type(c_nconstr), &
-                      c_npoint(c_nconstr), &
-                      c_symm(c_nconstr), &
-                      c_forc(c_nconstr), &
-                      c_dcrd(c_nconstr), &
-                      c_dini(c_nconstr), &
-                      c_dend(c_nconstr), &
-                      c_dist(c_nconstr), &
-                      c_dist_flg(c_nconstr), &
-                      c_step(c_nconstr), &
-                      c_file(c_nconstr), &
-                      c_atoms(c_nconstr,4) )
-            ! read line by line and asign general variables
-            do
-                read(100, *, iostat=io_stat) option
-                if (io_stat/=0) exit
-                if (option(1:1) == '!' .or. option(1:1) == '#') cycle
-                backspace(100)
-                select case (trim(option))   !FIXME: Make it case insensitive
-                    case ('MODE')
-                        read(100,*,iostat=io_stat) option, mode
-                    case ('NAME')
-                        read(100,*,iostat=io_stat) option, name
-                    case ('BIN')
-                        read(100,*,iostat=io_stat) option, sys_bin
-                    case ('COORD')
-                        read(100,*,iostat=io_stat) option, coord
-                    case ('CORES')
-                        read(100,*,iostat=io_stat) option, cores
-                    case ('MEMORY')
-                        read(100,*,iostat=io_stat) option, memory
-                    case ('CHARGE')
-                        read(100,*,iostat=io_stat) option, qm_charge
-                    case ('MULTI')
-                        read(100,*,iostat=io_stat) option, qm_multi
-                    case ('FORCE_UHF')
-                        read(100,*,iostat=io_stat) option, force_uhf
-                    case ('SEMIEMP')
-                        read(100,*,iostat=io_stat) option, semiemp
-                    case ('GAUSS')
-                        read(100,*,iostat=io_stat) option, gauss_flg
-                    case ('FUNC')
-                        read(100,*,iostat=io_stat) option, dft_func
-                    case ('BASIS')
-                        read(100,*,iostat=io_stat) option, dft_basis
-                    case ('CG_STEPS')
-                        read(100,*,iostat=io_stat) option, cg_steps
-                    case ('CG_TOLERANCE')
-                        read(100,*,iostat=io_stat) option, cg_tolerance
-                    case ('LBFGSB_STEPS')
-                        read(100,*,iostat=io_stat) option, lbfgsb_steps
-                    case ('LBFGSB_TOLERANCE')
-                        read(100,*,iostat=io_stat) option, lbfgsb_tolerance
-                    case ('TEMP')
-                        read(100,*,iostat=io_stat) option, temp
-                    case ('MD_STEP')
-                        read(100,*,iostat=io_stat) option, md_step
-                    case ('EQUI')
-                        read(100,*,iostat=io_stat) option, equilibration
-                    case ('PROD')
-                        read(100,*,iostat=io_stat) option, production
-                    case ('DCD_FREQ')
-                        read(100,*,iostat=io_stat) option, dcd_freq
-                    case ('VEL')
-                        read(100,*,iostat=io_stat) option, velocities
-                    case ('PBC')
-                        read(100,*,iostat=io_stat) option, pbc
-                    case ('LOC_STEPS')
-                        read(100,*,iostat=io_stat) option, loc_steps
-                    case ('LOC_TOLERANCE')
-                        read(100,*,iostat=io_stat) option, loc_tolerance
-                    case ('TS')
-                        read(100,*,iostat=io_stat) option, ts_search
-                    case ('IRC_DIR')
-                        read(100,*,iostat=io_stat) option, irc_dir
-                    case ('IRC_STEPS')
-                        read(100,*,iostat=io_stat) option, irc_steps
-                    case ('IRC_DSP')
-                        read(100,*,iostat=io_stat) option, irc_dsp
-                    case ('INT_NINT')
-                        read(100,*,iostat=io_stat) option, int_nint
-                    case ('INT_NRES')
-                        read(100,*,iostat=io_stat) option, int_nres
-                    case ('INT_WBOX')
-                        read(100,*,iostat=io_stat) option, int_wbox(:)
-                    case ('INT_IONS')
-                        read(100,*,iostat=io_stat) option, int_ions(:)
-                    case ('KIE_ATOM')
-                        read(100,*,iostat=io_stat) option, kie_atom
-                    case ('KIE_SKIP')
-                        read(100,*,iostat=io_stat) option, kie_skip
-                    case ('KIE_MASS')
-                        read(100,*,iostat=io_stat) option, kie_mass
-                    case ('KIE_HESS')
-                        read(100,*,iostat=io_stat) option, kie_hess
-                    case ('ATOM','A')
-                        a_natoms = a_natoms + 1
-                        allocate(a_atoms_tmp(a_natoms,3))
-                        a_atoms_tmp(:,:) = ''
-                        a_atoms_tmp(:,:) = a_atoms(:,:)
-                        CALL move_alloc(a_atoms_tmp,a_atoms)
-                        read(100,*,iostat=io_stat) option, a_atoms(a_natoms,:)
-                    case ('CONSTR','C')
-                        constr_flg = .true.
-                        c_nconstr = c_nconstr + 1
-                        ! character(len=64), allocatable     :: a_atoms_tmp(:,:)
-                        ! increment arrays
-                        CALL append_1d(c_indx)
-                        CALL append_1d(c_npoint)
-                        CALL append_1d(c_symm)
-                        CALL append_1d(c_forc)
-                        CALL append_1d(c_dini)
-                        CALL append_1d(c_dend)
-                        CALL append_1d(c_dist)
-                        CALL append_1d(c_step)
-                        CALL append_1d(c_dcrd)
-                        CALL append_1d(c_dist_flg)
-                        CALL append_1d(c_type)
-                        CALL append_1d(c_file)
-                        allocate( c_atoms_tmp(c_nconstr,4) )
-                        c_atoms_tmp(:,:) = 0
-                        c_atoms_tmp(:,:) = c_atoms(:,:)
-                        CALL move_alloc(c_atoms_tmp,c_atoms)
-                        ! type of constraint
-                        read(100,*,iostat=io_stat) option, arg
-                        select case (trim(arg))
-                            case ('ANGLE')
-                                c_type(c_nconstr) = 'ANGLE'
-                                c_npoint(c_nconstr) = 3
-                            case ('DIHEDRAL')
-                                c_type(c_nconstr) = 'DIHEDRAL'
-                                c_npoint(c_nconstr) = 4
-                            case ('DISTANCE','D','d')
-                                c_type(c_nconstr) = 'DISTANCE'
-                                c_npoint(c_nconstr) = 2
-                            case ('>DISTANCE','>D','>d')
-                                c_type(c_nconstr) = '>DISTANCE'
-                                c_npoint(c_nconstr) = 2
-                            case ('<DISTANCE','<D','<d')
-                                c_type(c_nconstr) = '<DISTANCE'
-                                c_npoint(c_nconstr) = 2
-                            case ('MULTIPLE_DISTANCE','M','m')
-                                c_type(c_nconstr) = 'MULTIPLE_DISTANCE'
-                                c_npoint(c_nconstr) = 4
-                            case DEFAULT
-                                write(*,fmt='(A)') 'ERROR: Unkown constraint type'
-                                STOP
-                        end select
-                        ! read all constraint options
-                        do
-                            read(100, *, iostat=io_stat) option
-                            if (io_stat/=0) exit
-                            if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
-                            if (option(1:1) == '!' .or. option(1:1) == '#') cycle
-                            backspace(100)
-                            select case (trim(option))
-                                case ('SYMM')
-                                    read(100,*,iostat=io_stat) option, c_symm(c_nconstr)
-                                case ('N')
-                                    read(100,*,iostat=io_stat) option, c_indx(c_nconstr)
-                                case ('ATOMS')
-                                    read(100,*,iostat=io_stat) option, c_atoms(c_nconstr,1:c_npoint(c_nconstr))
-                                case ('FORCE')
-                                    read(100,*,iostat=io_stat) option, c_forc(c_nconstr)
-                                case ('DCRD')
-                                    read(100,*,iostat=io_stat) option, c_dcrd(c_nconstr)
-                                case ('DINIT')
-                                    read(100,*,iostat=io_stat) option, c_dini(c_nconstr)
-                                case ('DEND')
-                                    read(100,*,iostat=io_stat) option, c_dend(c_nconstr)
-                                case ('DIST','D')
-                                    c_dist_flg(c_nconstr) = .true.
-                                    read(100,*,iostat=io_stat) option, c_dist(c_nconstr)
-                                case ('STEP')
-                                    read(100,*,iostat=io_stat) option, c_step(c_nconstr)
-                                case ('DFILE')
-                                    read(100,*,iostat=io_stat) option, c_file(c_nconstr)
-                                case DEFAULT
-                                    read(100,*) arg
-                                    write(*,fmt='(A,A)') "Omitting unknown option: ", arg
-                            end select
-                        end do
-                    case DEFAULT
-                        read(100,*) arg
-                        write(*,fmt='(A,A)') "Omitting unknown option: ", arg
-                end select
-            end do
-            close(unit=100)
+            CALL read_file(input_file, .true.)
             argn = 2
         else
             argn = 1

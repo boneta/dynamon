@@ -46,7 +46,7 @@ program DYNAMON
   CALL dynamo_header
 
   ! read .dynn options file
-  CALL read_options
+  CALL options_interface
   skip_abinitio = .not. gauss_flg
 
   ! read .bin and .crd
