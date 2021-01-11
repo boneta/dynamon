@@ -1,4 +1,4 @@
-<img width="200" height="200" src="./docs/dynamon_logo.svg" align="right" />
+<img width="300" height="150" src="./docs/dynamon_logo.svg" align="right" />
 
 # DYNAMO<sup>N</sup>
 
