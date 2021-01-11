@@ -4,11 +4,22 @@
 !
 !  Subroutines
 !  -----------
+!   MY_SELE                       Returns NOFIX atoms (required by hack_chrg.F90)
 !   CHRG_SERVER                   Call Gaussian 09 to perform a calculation
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine chrg_server( code, natm, naqm, atmn, cord, ener, qfit, grad, hess )
+subroutine my_sele(sele)
+
+    use initialization, only : nofix_sele
+
+    logical, intent(inout)  :: sele( SIZE(nofix_sele,1) )
+
+    sele(:) = nofix_sele(:)
+
+end subroutine
+
+subroutine chrg_server(code, natm, naqm, atmn, cord, ener, qfit, grad, hess)
 
   use initialization
 

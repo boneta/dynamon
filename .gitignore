@@ -5,7 +5,8 @@ fDynamo/*.o
 fDynamo/*.mod
 fDynamo/*.a
 
-# User compiled executables and binaries
+# User binaries and selection files
 user/*
-user/exe/*
-user/binaries/*
+
+# DYNAMON compiled
+bin/dynamon

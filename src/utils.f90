@@ -9,14 +9,13 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-module utils
+module UTILS
 
     implicit none
 
-
     interface append_1d
         !--------------------------------------------------------------
-        ! Increment array by one and append value if present
+        ! Increment 1D array by one and append value if present
         !--------------------------------------------------------------
         module procedure append_1d_integer
         module procedure append_1d_real4
@@ -57,7 +56,7 @@ module utils
 
         n = SIZE(array, 1) + 1
         allocate(array_tmp(n))
-        array_tmp = 0.D0
+        array_tmp = 0.E0
         array_tmp(:) = array(:)
         CALL MOVE_ALLOC(array_tmp, array)
         if (PRESENT(val)) array(n) = val

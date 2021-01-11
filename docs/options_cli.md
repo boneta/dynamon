@@ -9,7 +9,9 @@ the following argument.
 | :--------------- | :--:   | ----------- |
 | --MODE           | *char* | Type of calculation |
 | --NAME           | *char* | Base name for files |
-| --BIN            | *char* | Binary file of system |
+| --SYS            | *char* | System base name (for searching BIN/SELE) |
+| --BIN            | *char* | Binary file of system (.bin) |
+| --SELE           | *char* | Selection file for QM and NOFIX (.dynn) |
 | --COORD          | *char* | Coordinates file |
 
 #### Computational settings
@@ -50,6 +52,8 @@ the following argument.
 | | |
 | --KIE_SKIP         | *int*  | Number of frequencies to skip |
 | --KIE_HESS         | *char* | Hessian file |
+| | |
+| --INT_DCD          | *char* | Trajectory file along which calculate interactions |
 
 #### Constraints
 The definition of constraints is necessarily made through an input file, although

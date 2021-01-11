@@ -4,7 +4,6 @@
 !
 !  Subroutines
 !  -----------
-!   PRINT_MODE                    Print the calculation mode in a formatted fashion
 !   QM_INITIALIZE                 Set-up the QM calculation type, fix atoms and initialize energy
 !   GET_ATOM_NUMBERS              Obtain the atom numbers for constraints references
 !   DEFINE_CONSTRAINTS            Set-up constraints
@@ -25,23 +24,6 @@ module COMMON
     use initialization
 
     contains
-
-    !  PRINT_MODE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine print_mode(mode)
-
-        !--------------------------------------------------------------
-        ! Print the calculation mode
-        !--------------------------------------------------------------
-
-        character(*), intent(in)           :: mode
-
-        write(*,*)
-        write(*,fmt='(A80)') REPEAT('>',80)
-        write(*,fmt='(A3,7X,A)') '>>>', trim(mode)
-        write(*,fmt='(A80)') REPEAT('>',80)
-        write(*,*)
-
-    end subroutine
 
     !  QM_INITIALIZE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine qm_initialize(abinitio_flg)
@@ -66,7 +48,6 @@ module COMMON
                 iterations = 500000)
         end if
 
-        CALL my_sele( nofix_sele )
         CALL atoms_fix( .not. nofix_sele )
 
         CALL energy_initialize

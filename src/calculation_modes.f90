@@ -4,6 +4,7 @@
 !
 !  Subroutines
 !  -----------
+!   PRINT_MODE                    Print the calculation mode in a formatted fashion
 !   DYNAMON_SP                    Single-point energy calculation
 !   DYNAMON_MINIMIZATION          Structure optimization
 !   DYNAMON_LOCATE                Localize and characterize minima or saddle point
@@ -21,6 +22,23 @@ module CALCULATION_MODES
     use common
 
     contains
+
+    !  PRINT_MODE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine print_mode(mode)
+
+        !--------------------------------------------------------------
+        ! Print the calculation mode
+        !--------------------------------------------------------------
+
+        character(*), intent(in)           :: mode
+
+        write(*,*)
+        write(*,fmt='(A80)') REPEAT('>',80)
+        write(*,fmt='(A3,7X,A)') '>>>', trim(mode)
+        write(*,fmt='(A80)') REPEAT('>',80)
+        write(*,*)
+
+    end subroutine
 
     !  DYNAMON_SP  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine dynamon_sp()
@@ -158,8 +176,7 @@ module CALCULATION_MODES
             else if (irc_dir == 1) then
                 name = trim(coord_name) // "-irc-for"
             else
-                write(*,fmt='(A)') 'ERROR: Unkown IRC direction'
-                STOP
+                CALL dynn_log(1, 'Unknown IRC direction')
             end if
         end if
 
@@ -583,7 +600,7 @@ module CALCULATION_MODES
         my_atmeps = atmeps
 
         CALL dcd_initialize( trj )
-        CALL dcd_activate_read( trim(name)//'.dcd', trj )
+        CALL dcd_activate_read( trim(int_dcd), trj )
         CALL dcd_read( trj, atmcrd, boxl )
 
         write( *,* ) "@@ NUMBER OF FRAMES @", trj%nframes

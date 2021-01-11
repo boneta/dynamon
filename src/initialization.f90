@@ -6,6 +6,7 @@
 !  -----------
 !   DYNAMON_HEADER                Print the DYNAMON greeting and starts time
 !   DYNAMON_FOOTER                Print elapsed time and normal ending
+!   DYNN_LOG                      Print logs: error (1) / warning (2)
 !   READ_FILE                     Read options from a .dynn file
 !   OPTIONS_INTERFACE             Set options from first-argument input file and CLI arguments
 !
@@ -16,16 +17,18 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.2.4'
+    character(len=64), parameter       :: dynamon_version = '0.3.0'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
-    character(len=128)                 :: binaries_path = '/user/binaries/'  ! Relative location from dynamon_path to the binary files (.bin)
+    character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
 
     !  OPTIONS & DEFAULTS  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     character(len=128)                 :: MODE = ''                   ! Calculation mode
 
     character(len=256)                 :: name = ''                   ! Calculation name/title
-    character(len=256)                 :: sys_bin = ''                ! System binary file
+    character(len=256)                 :: binfile = ''                ! System binary file (.bin)
+    character(len=256)                 :: selefile = ''               ! System selection file for QM, NOFIX and hard defaults (.dynn)
+    character(len=256)                 :: sysname = ''                ! System base name (without suffix)
     character(len=256)                 :: coord = ''                  ! Coordinate file (.crd)
     character(len=256)                 :: coord_name = ''             ! Coordinate file name without suffix
 
@@ -63,6 +66,7 @@ module INITIALIZATION
     integer                            :: irc_steps = 400             ! Maximum number of steps for IRC
     real(8)                            :: irc_dsp = 0.01              ! Displacement on every step of IRC
 
+    character(len=256)                 :: int_dcd = ''                ! Trajectory file along which calculate interactions
     integer                            :: int_nint = 0                ! Number of residues to compute interactions with (aa + 1 H2O + ions)
     integer                            :: int_nres = 0                ! Number of protein residues + ligands
     integer                            :: int_wbox(2) = 0             ! First and last residue number for Water Box atoms
@@ -93,13 +97,13 @@ module INITIALIZATION
     real(8), allocatable               :: c_step(:)                   ! Scan step distance [A]
     character(len=256), allocatable    :: c_file(:)                   ! File naming (dat_)
 
-    !  DYNAMO RECURRING VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     logical, allocatable               :: qm_sele(:)                  ! QM region atoms (aka 'acs')
     logical, allocatable               :: nofix_sele(:)               ! No-fixed atoms (aka 'flg')
 
+    !  DYNAMO RECURRING VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     real(8), parameter                 :: cof_sym(-1:1,2) = RESHAPE([1.D0, 0.D0, 1.D0, -1.D0, 0.D0, 1.D0],[3,2])
 
-contains
+    contains
 
     !  DYNAMON_HEADER  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine dynamon_header()
@@ -148,6 +152,39 @@ contains
 
     end subroutine
 
+    !  DYNN_LOG  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine dynn_log(level, msg, msg_arrow)
+
+        !--------------------------------------------------------------
+        ! Print logs: error (1) / warning (2)
+        !--------------------------------------------------------------
+
+        implicit none
+
+        integer, intent(in)                     :: level
+        character(len=*), intent(in)            :: msg
+        character(len=*), intent(in), optional  :: msg_arrow
+
+        character(len=64)                       :: level_msg
+
+        ! assign message depending on log level
+        select case (level)
+            case (1)
+                level_msg = "ERROR:"
+            case (2)
+                level_msg = "WARNING:"
+        end select
+
+        if (PRESENT(msg_arrow)) then
+            write(*,fmt='(/,A,X,A,A,A)') trim(level_msg), trim(msg), ' --> ', trim(msg_arrow)
+        else
+            write(*,fmt='(/,A,X,A)') trim(level_msg), trim(msg)
+        end if
+
+        if (level == 1) STOP
+
+    end subroutine
+
     !  READ_FILE  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine read_file(filename, print_warnings)
 
@@ -173,39 +210,43 @@ contains
         if (PRESENT(print_warnings)) then
             p_warn = print_warnings
         else
-            p_warn = .false.
+            p_warn = .true.
         end if
 
         ! allocate arrays
-        allocate( a_atoms(a_natoms,3), &
-                  c_indx(c_nconstr), &
-                  c_type(c_nconstr), &
-                  c_npoint(c_nconstr), &
-                  c_symm(c_nconstr), &
-                  c_forc(c_nconstr), &
-                  c_dcrd(c_nconstr), &
-                  c_dini(c_nconstr), &
-                  c_dend(c_nconstr), &
-                  c_dist(c_nconstr), &
-                  c_dist_flg(c_nconstr), &
-                  c_step(c_nconstr), &
-                  c_file(c_nconstr), &
-                  c_atoms(c_nconstr,4) )
+        if (.not. allocated(a_atoms))     allocate(a_atoms(a_natoms,3))
+        if (.not. allocated(c_indx))      allocate(c_indx(c_nconstr))
+        if (.not. allocated(c_type))      allocate(c_type(c_nconstr))
+        if (.not. allocated(c_npoint))    allocate(c_npoint(c_nconstr))
+        if (.not. allocated(c_symm))      allocate(c_symm(c_nconstr))
+        if (.not. allocated(c_forc))      allocate(c_forc(c_nconstr))
+        if (.not. allocated(c_dcrd))      allocate(c_dcrd(c_nconstr))
+        if (.not. allocated(c_dini))      allocate(c_dini(c_nconstr))
+        if (.not. allocated(c_dend))      allocate(c_dend(c_nconstr))
+        if (.not. allocated(c_dist))      allocate(c_dist(c_nconstr))
+        if (.not. allocated(c_dist_flg))  allocate(c_dist_flg(c_nconstr))
+        if (.not. allocated(c_step))      allocate(c_step(c_nconstr))
+        if (.not. allocated(c_file))      allocate(c_file(c_nconstr))
+        if (.not. allocated(c_atoms))     allocate(c_atoms(c_nconstr,4))
 
         ! read line by line and asign general variables
         open(unit=100, file=filename, status='old', action='read', form='formatted')
         do
             read(100, *, iostat=io_stat) option
-            if (io_stat/=0) exit
-            if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+            if (io_stat/=0) EXIT
+            if (option(1:1) == '!' .or. option(1:1) == '#') CYCLE
             backspace(100)
             select case (trim(option))   !FIXME: Make it case insensitive
                 case ('MODE')
                     read(100,*,iostat=io_stat) option, mode
                 case ('NAME')
                     read(100,*,iostat=io_stat) option, name
+                case ('SYS')
+                    read(100,*,iostat=io_stat) option, sysname
                 case ('BIN')
-                    read(100,*,iostat=io_stat) option, sys_bin
+                    read(100,*,iostat=io_stat) option, binfile
+                case ('SELE')
+                    read(100,*,iostat=io_stat) option, selefile
                 case ('COORD')
                     read(100,*,iostat=io_stat) option, coord
                 case ('CORES')
@@ -260,6 +301,8 @@ contains
                     read(100,*,iostat=io_stat) option, irc_steps
                 case ('IRC_DSP')
                     read(100,*,iostat=io_stat) option, irc_dsp
+                case ('INT_DCD')
+                    read(100,*,iostat=io_stat) option, int_dcd
                 case ('INT_NINT')
                     read(100,*,iostat=io_stat) option, int_nint
                 case ('INT_NRES')
@@ -325,15 +368,14 @@ contains
                             c_type(c_nconstr) = 'MULTIPLE_DISTANCE'
                             c_npoint(c_nconstr) = 4
                         case DEFAULT
-                            write(*,fmt='(A)') 'ERROR: Unkown constraint type'
-                            STOP
+                            CALL dynn_log(1, 'Unkown constraint type')
                     end select
                     ! read all constraint options
                     do
                         read(100, *, iostat=io_stat) option
-                        if (io_stat/=0) exit
-                        if (trim(option)=='CONSTR' .or. trim(option)=='C') exit
-                        if (option(1:1) == '!' .or. option(1:1) == '#') cycle
+                        if (io_stat/=0) EXIT
+                        if (option=='CONSTR' .or. option=='C') EXIT
+                        if (option(1:1) == '!' .or. option(1:1) == '#') CYCLE
                         backspace(100)
                         select case (trim(option))
                             case ('SYMM')
@@ -361,6 +403,13 @@ contains
                                 read(100,*) arg
                                 if (p_warn) write(*,fmt='(A,A)') "Omitting unknown option: ", arg
                         end select
+                    end do
+                case ('QM', 'NOFIX')  ! skip selection section
+                    read(100, *) arg
+                    if (p_warn) write(*,fmt='(A,A)') "Skipping selection: ", arg
+                    do
+                        read(100, *, iostat=io_stat) option
+                        if (io_stat/=0 .or. option=='QM' .or. option=='NOFIX') EXIT
                     end do
                 case DEFAULT
                     read(100,*) arg
@@ -391,17 +440,22 @@ contains
 
         ! check no argument
         if (COMMAND_ARGUMENT_COUNT() == 0) then
-            write(*,fmt='(A)') 'ERROR: No arguments found'
-            STOP
+            CALL dynn_log(1, 'No arguments found')
         end if
 
         ! first argument as input file name
         CALL GETARG(1,input_file)
+        ! check help
+        if (input_file=='-h' .or. input_file=='--help') then
+            write(*,fmt='(/,/,A,/)') 'DYNAMON -- A general-purpose script for common calculations with fDynamo'
+            write(*,fmt='(A,/)')       '  USAGE:   dynamon [.dynn] [[--option arg] ...]'
+            STOP
+        end if
         ! check input_file not found
         INQUIRE(file=trim(input_file),exist=f_exist)
         if (f_exist) then
             write(*,fmt='(/,A,A)') "Options read from ", trim(input_file)
-            CALL read_file(input_file, .true.)
+            CALL read_file(input_file)
             argn = 2
         else
             argn = 1
@@ -418,8 +472,12 @@ contains
                     read(arg,'(A)',iostat=io_stat) mode
                 case ('--NAME')
                     read(arg,'(A)',iostat=io_stat) name
+                case ('--SYS')
+                    read(arg,'(A)',iostat=io_stat) sysname
                 case ('--BIN')
-                    read(arg,'(A)',iostat=io_stat) sys_bin
+                    read(arg,'(A)',iostat=io_stat) binfile
+                case ('--SELE')
+                    read(arg,'(A)',iostat=io_stat) selefile
                 case ('--COORD')
                     read(arg,'(A)',iostat=io_stat) coord
                 case ('--CORES')
@@ -460,6 +518,8 @@ contains
                     read(arg,*,iostat=io_stat) kie_skip
                 case ('--KIE_HESS')
                     read(arg,*,iostat=io_stat) kie_hess
+                case ('--INT_DCD')
+                    read(arg,'(A)',iostat=io_stat) int_dcd
                 case ('--N')
                     do i=1, c_nconstr
                         CALL GETARG(argn+i, arg)
@@ -477,22 +537,35 @@ contains
             argn = argn + 2
         end do
 
-        ! get DYNAMON installation path from environment variable
-        CALL GET_ENVIRONMENT_VARIABLE('DYNAMON', dynamon_path)
+        ! check mode existence
+        if (Len_Trim(mode) == 0) CALL dynn_log(1, 'Missing mandatory option', 'MODE')
 
-        ! if binary not found locally, check in binaries folder
-        if (Len_Trim(sys_bin) > 0) then
-            INQUIRE(file=trim(sys_bin),exist=f_exist)
-            if (.not. f_exist .and. Len_Trim(dynamon_path) > 0) then
-                sys_bin = trim(dynamon_path)//trim(binaries_path)//trim(sys_bin)
+        ! build sysname if not from input
+        if (Len_Trim(sysname) == 0) then
+            if (Len_Trim(binfile) > 0) then
+                sysname = binfile
+            else if (Len_Trim(selefile) > 0) then
+                sysname = selefile
+            else
+                CALL dynn_log(1, 'Missing mandatory option', '{SYS, BIN, SELE}')
             end if
+            ! remove suffix
+            dot_position = SCAN(trim(sysname), '.', back=.true.)
+            if (dot_position > 0) sysname = sysname(1:dot_position-1)
         end if
 
-        ! check neccesary inputs
-        if (Len_Trim(mode) == 0 .or. Len_Trim(sys_bin) == 0 .or. Len_Trim(coord) == 0) then
-            write(*,fmt='(A)') 'ERROR: Missing mandatory options (MODE/BIN/COORD)'
-            STOP
-        end if
+        ! build binfile and selefile if not from input
+        if (Len_Trim(binfile) == 0) binfile = trim(sysname)//".bin"
+        if (Len_Trim(selefile) == 0) selefile = trim(sysname)//".dynn"
+
+        ! check binfile/selefile existence or try to find in user folder
+        CALL GET_ENVIRONMENT_VARIABLE('DYNAMON', dynamon_path)  ! get DYNAMON installation path
+        CALL check_exist_or_find(binfile)
+        CALL check_exist_or_find(selefile)
+
+        ! check coordinate
+        if (Len_Trim(coord) == 0) CALL dynn_log(1, 'Missing mandatory options', 'COORD')
+        CALL check_exist_or_find(coord)
 
         ! get coord without extension
         dot_position = SCAN(trim(coord),'.', back= .true.)
@@ -501,6 +574,29 @@ contains
         else
             coord_name = coord
         end if
+
+        contains
+
+        subroutine check_exist_or_find(file)
+
+            ! ---------------------------------------------------------
+            ! check file existence or try to find in user folder
+            ! ---------------------------------------------------------
+
+            implicit none
+
+            character(len=*), intent(inout)    :: file
+            character(len=LEN(file))           :: file_original
+
+            file_original = file
+            INQUIRE(file=trim(file), exist=f_exist)
+            if (.not. f_exist .and. Len_Trim(dynamon_path) > 0) then
+                file = trim(dynamon_path)//trim(user_path)//trim(file)
+                INQUIRE(file=trim(file), exist=f_exist)
+                if (.not. f_exist) CALL dynn_log(1, 'File not found', file_original)
+            end if
+
+        end subroutine
 
     end subroutine
 

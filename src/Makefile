@@ -4,7 +4,7 @@
 
 # name of the final executable, destination and fDynamo path
 EXE     ?= dynamon
-EXEPATH ?= ../user/exe
+EXEPATH ?= ../bin
 DYNPATH ?= ../fDynamo
 
 # compiler and flags
@@ -17,6 +17,7 @@ FFLAGS   = $(Olevel) -finit-local-zero -frecord-marker=4 \
 
 OBJS := utils.f90 \
         initialization.f90 \
+        nofix_qm.f90 \
         common.f90 \
         panadero.f90 \
         calculation_modes.f90 \

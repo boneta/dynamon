@@ -16,7 +16,9 @@ String arguments that contains slashes or commas should be between quotes.
 | :--------------- | :--:   | :-----: | ----------- |
 | MODE             | *char* | -       | Type of calculation |
 | NAME             | *char* | *mode*  | Base name for files |
-| BIN              | *char* | -       | Binary file of system |
+| SYS              | *char* | -       | System base name (for searching BIN/SELE) |
+| BIN              | *char* | -       | Binary file of system (.bin) |
+| SELE             | *char* | -       | Selection file for QM and NOFIX (.dynn) |
 | COORD            | *char* | -       | Coordinates file |
 
 #### Computational Settings
@@ -80,6 +82,7 @@ String arguments that contains slashes or commas should be between quotes.
 #### Interaction
 |   OPTION NAME    | TYPE        | DEFAULT | DESCRIPTION |
 | :--------------- | :--:        | :-----: | ----------- |
+| INT_DCD          | *char*      | -       | Trajectory file along which calculate interactions |
 | INT_NINT         | *int*       | -       | Number of residues to compute interactions with (aa + 1 H2O + ions) |
 | INT_NRES         | *int*       | -       | Number of protein residues + ligands |
 | INT_WBOX         | *int* *int* | -       | First and last residue number for Water Box atoms |
