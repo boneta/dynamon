@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Description: Script to compile a generic user-defined program with fDynamo and DYNAMON support
-# Last update: 08/01/2021
+# Last update: 12/01/2021
 
 # check no argument
 if [ "$1" == "" ]; then
@@ -12,10 +12,9 @@ fi
 src_file=$1; shift
 # help
 if [ "$src_file" == "-h" ] || [ "$src_file" == "--help" ]; then
-  echo "##  Compilation wrapper for a generic program "
-  echo "##  with fDynamo and DYNAMON support"
+  echo "Compilation wrapper for a generic program with fDynamo and DYNAMON support"
   echo ""
-  echo "USAGE:  dynn-gcompile <.f90>"
+  echo "  USAGE:  d-compile <.f90>"
   echo ""
   exit
 fi

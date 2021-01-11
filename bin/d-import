@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Description: Simple script to import binary and selection file to default folder
+# Last update: 12/01/2021
+
+# default folder for binaries
+user_path=${DYNAMON}/user/
+
+# check no argument
+if [ "$1" == "" ]; then
+  echo "ERROR: No input arguments. Use -h for help."
+  exit
+fi
+# read binary name
+sys_name=$1; shift
+# help
+if [ "$sys_name" == "-h" ] || [ "$sys_name" == "--help" ]; then
+  echo "Import wrapper for binary and selection files"
+  echo ""
+  echo "  USAGE:  d-import <sys>"
+  echo ""
+  echo "  <sys>.bin and <sys>.dynn will be copied to $user_path"
+  exit
+fi
+# copy file
+cp -t $user_path $sys_name.bin $sys_name.dynn  && echo "Succesful import of '$sys_name'"
