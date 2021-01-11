@@ -35,8 +35,7 @@ dynamon: $(OBJS)
 fdynamo: $(DYNPATH)/dynamo.a
 
 $(DYNPATH)/dynamo.a:
-	@printf "Compiling fDynamo... "
-	@make -s -C $(DYNPATH) && printf "DONE \n"
+	@make -C $(DYNPATH)
 
 clean:
 	rm -f *.o *.mod

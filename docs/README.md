@@ -3,8 +3,8 @@
 *A general-purpose script for common calculations with fDynamo*
 
 ## Modes
-Several main calculation modes are available to be chosen at runtime. It must be
-specified in upper cases.
+Several main calculation modes are available to be chosen at runtime. Must be
+specified in upper cases. Composed calculation such as SCAN/PES/PMF have to be launched individually.
 
 | MODE NAME | ALT NAMES | DESCRIPTION |
 | :-------- | :-------- | ----------- |
@@ -23,3 +23,11 @@ directly with specific arguments but with limited capabilities. Both methods can
 be independently employed or together, in which case the arguments overwrite the file options.
  - [Input file (.dynn)](./options_file.md)
  - [Command line arguments](./options_cli.md)
+
+#### Selection file
+A [selection file (.dynn)](./sele_file.md) (.dynn) is also needed on every calculation
+to provide the QM atoms and NOFIX atoms. Usually prepared once for a system.
+
+#### Binary file
+A binary file (.bin) which related the coordinates and topology and created with
+the fDynamo libraries is necessary for every system.
