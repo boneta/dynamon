@@ -69,6 +69,7 @@ module INITIALIZATION
     integer                            :: irc_steps = 400             ! Maximum number of steps for IRC
     real(8)                            :: irc_dsp = 0.01              ! Displacement on every step of IRC
 
+    integer                            :: dcd_stride = 1              ! Read only every n-th frame of the trajectory
     character(len=256)                 :: int_dcd = ''                ! Trajectory file along which calculate interactions
     integer                            :: int_nint = 0                ! Number of residues to compute interactions with (aa + 1 H2O + ions)
     integer                            :: int_nres = 0                ! Number of protein residues + ligands
@@ -308,6 +309,8 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, irc_steps
                 case ('IRC_DSP')
                     read(100,*,iostat=io_stat) option, irc_dsp
+                case ('DCD_STRIDE')
+                    read(100,*,iostat=io_stat) option, dcd_stride
                 case ('INT_DCD')
                     read(100,*,iostat=io_stat) option, int_dcd
                 case ('INT_NINT')

@@ -622,6 +622,7 @@ module CALCULATION_MODES
         open( 500, file='intmatrix_eqm.dat' )
         open( 600, file='intmatrix_lj.dat'  )
         open( 700, file='intmatrix_tot.dat' )
+        open( 800, file='eqm_trj.dat' )
 
         CALL atoms_fix( .not. qm_sele )
 
@@ -635,7 +636,9 @@ module CALCULATION_MODES
         CALL dcd_read( trj, atmcrd, boxl )
 
         write( *,* ) "@@ NUMBER OF FRAMES @", trj%nframes
-        do i = 2, trj%nframes
+        do i = 0, trj%nframes, dcd_stride
+
+            if (i < 2) CYCLE
 
             write( *,* ) "@@", i
             CALL dcd_read( trj, atmcrd, boxl )
@@ -649,8 +652,8 @@ module CALCULATION_MODES
             atmeps = .0_dp
             CALL density_read( 'dens.mat' )
             CALL energy
-            write( 666, '(f20.10)' ) eqm
-            CALL flush( 666 )
+            write( 800, '(f20.10)' ) eqm
+            CALL flush( 800 )
 
             j = 1
             do k = 1, nresid
