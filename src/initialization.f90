@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.0'
+    character(len=64), parameter       :: dynamon_version = '0.3.1'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -31,6 +31,9 @@ module INITIALIZATION
     character(len=256)                 :: sysname = ''                ! System base name (without suffix)
     character(len=256)                 :: coord = ''                  ! Coordinate file (.crd)
     character(len=256)                 :: coord_name = ''             ! Coordinate file name without suffix
+
+    character(len=256)                 :: fffile = ''                 ! Force field file (.ff)
+    character(len=256)                 :: seqfile = ''                ! Sequence file (.seq)
 
     character(len=128)                 :: cores = '1'                 ! Total number of cores (for Gaussian)
     character(len=128)                 :: memory = '3000MB'           ! Total RAM memory (for Gaussian)
@@ -249,6 +252,10 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, selefile
                 case ('COORD')
                     read(100,*,iostat=io_stat) option, coord
+                case ('FF')
+                    read(100,*,iostat=io_stat) option, fffile
+                case ('SEQ')
+                    read(100,*,iostat=io_stat) option, seqfile
                 case ('CORES')
                     read(100,*,iostat=io_stat) option, cores
                 case ('MEMORY')
@@ -480,6 +487,10 @@ module INITIALIZATION
                     read(arg,'(A)',iostat=io_stat) selefile
                 case ('--COORD')
                     read(arg,'(A)',iostat=io_stat) coord
+                case ('--FF')
+                    read(arg,'(A)',iostat=io_stat) fffile
+                case ('--SEQ')
+                    read(arg,'(A)',iostat=io_stat) seqfile
                 case ('--CORES')
                     read(arg,*,iostat=io_stat) cores
                 case ('--MEMORY')
@@ -554,9 +565,12 @@ module INITIALIZATION
             if (dot_position > 0) sysname = sysname(1:dot_position-1)
         end if
 
-        ! build binfile and selefile if not from input
+        ! name binfile and selefile if not from input
         if (Len_Trim(binfile) == 0) binfile = trim(sysname)//".bin"
         if (Len_Trim(selefile) == 0) selefile = trim(sysname)//".dynn"
+
+        ! if build binary mode skip checking of binfile/selefile/coordfile
+        if (mode == 'BIN') RETURN
 
         ! check binfile/selefile existence or try to find in user folder
         CALL GET_ENVIRONMENT_VARIABLE('DYNAMON', dynamon_path)  ! get DYNAMON installation path

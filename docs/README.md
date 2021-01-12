@@ -8,6 +8,7 @@ specified in upper cases. Composed calculation such as SCAN/PES/PMF have to be l
 
 | MODE NAME | ALT NAMES | DESCRIPTION |
 | :-------- | :-------- | ----------- |
+| BIN         | -         | Build a binary file from sequence and FF |
 | SP          | CORR      | Single point calculation |
 | MINI        | SCAN, PES | Geometrical optimization |
 | LOCATE      | -         | Find a stationary point or TS |

@@ -50,6 +50,12 @@ program DYNAMON
     CALL options_interface
     skip_abinitio = .not. gauss_flg
 
+    ! check if build binary requested
+    if (mode == 'BIN') then
+        CALL print_mode('BUILD BINARY')
+        CALL build_bin(exit_after=.true.)
+    end if
+
     ! read .bin and .crd
     CALL mm_system_read(trim(binfile))
     CALL coordinates_read(trim(coord))

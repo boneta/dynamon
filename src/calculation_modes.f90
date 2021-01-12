@@ -5,6 +5,7 @@
 !  Subroutines
 !  -----------
 !   PRINT_MODE                    Print the calculation mode in a formatted fashion
+!   BUILD_BIN                     Build a binary file from sequence and FF
 !   DYNAMON_SP                    Single-point energy calculation
 !   DYNAMON_MINIMIZATION          Structure optimization
 !   DYNAMON_LOCATE                Localize and characterize minima or saddle point
@@ -37,6 +38,36 @@ module CALCULATION_MODES
         write(*,fmt='(A3,7X,A)') '>>>', trim(mode)
         write(*,fmt='(A80)') REPEAT('>',80)
         write(*,*)
+
+    end subroutine
+
+    !  BUILD_BIN  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    subroutine build_bin(exit_after)
+
+        logical, intent(in)                :: exit_after
+
+        character(len=256)                 :: ffname
+        integer                            :: dot_position
+
+        ! get FF name without suffix
+        ffname = fffile
+        dot_position = SCAN(trim(ffname), '.', back=.true.)
+        if (dot_position > 0) ffname = ffname(1:dot_position-1)
+
+        ! name of formatted FF file
+        ffname = trim(ffname) // '_processed.ff'
+
+        CALL mm_file_process(trim(ffname), trim(fffile))
+        CALL mm_system_construct(trim(ffname), trim(seqfile))
+        CALL mm_system_write(trim(binfile))
+
+        if (Len_Trim(coord) > 0) CALL coordinates_read(trim(coord))
+
+        if (exit_after) then
+            CALL dynamo_footer
+            CALL dynamon_footer
+            STOP
+        end if
 
     end subroutine
 

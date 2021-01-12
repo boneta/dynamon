@@ -20,6 +20,8 @@ String arguments that contains slashes or commas should be between quotes.
 | BIN              | *char* | -       | Binary file of system (.bin) |
 | SELE             | *char* | -       | Selection file for QM and NOFIX (.dynn) |
 | COORD            | *char* | -       | Coordinates file |
+| FF               | *char* | -       | Force field file (.ff) |
+| SEQ              | *char* | -       | Sequence file (.seq) |
 
 #### Computational Settings
 |   OPTION NAME    | TYPE   | DEFAULT | DESCRIPTION |

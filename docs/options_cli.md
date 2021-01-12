@@ -13,6 +13,8 @@ the following argument.
 | --BIN            | *char* | Binary file of system (.bin) |
 | --SELE           | *char* | Selection file for QM and NOFIX (.dynn) |
 | --COORD          | *char* | Coordinates file |
+| --FF             | *char* | Force field file (.ff) |
+| --SEQ            | *char* | Sequence file (.seq) |
 
 #### Computational settings
 |   ARGUMENT NAME  | TYPE   | DESCRIPTION |
