@@ -604,21 +604,21 @@ module CALCULATION_MODES
     subroutine dynamon_interaction()
 
         integer                            :: i, j, k
+        character(len=256)                 :: fmtString
+        character(len=128)                 :: dens_file
         type(dcd_type)                     :: trj
-        real(kind=dp), allocatable         :: my_atmchg(:), &
-                                              my_atmeps(:), &
-                                              my_eqm(:), &
-                                              my_lj(:)
-        character(len=200)                 :: fmtString
+        real(kind=dp)                      :: my_atmchg(natoms), &     ! atom charges
+                                              my_atmeps(natoms), &     ! atom LJ epsilon
+                                              my_eqm(int_nint), &
+                                              my_lj(int_nint)
 
         if (len_trim(name)==0) name = trim(coord_name)
 
         write(fmtString,*) int_nint
         fmtString = '('//trim(adjustl(fmtString))//'f20.10)'
 
-        allocate( my_atmchg(natoms), my_atmeps(natoms), my_eqm(int_nint), my_lj(int_nint) )
-
         ! Output files
+        dens_file = 'dens.mat'
         open( 500, file='intmatrix_eqm.dat' )
         open( 600, file='intmatrix_lj.dat'  )
         open( 700, file='intmatrix_tot.dat' )
@@ -635,22 +635,24 @@ module CALCULATION_MODES
         CALL dcd_activate_read( trim(int_dcd), trj )
         CALL dcd_read( trj, atmcrd, boxl )
 
-        write( *,* ) "@@ NUMBER OF FRAMES @", trj%nframes
-        do i = 0, trj%nframes, dcd_stride
-
-            if (i < 2) CYCLE
-
-            write( *,* ) "@@", i
+        write(*,*) "@@ NUMBER OF FRAMES: ", trj%nframes
+        do i = 2, trj%nframes
+            ! read next trajectory frame
             CALL dcd_read( trj, atmcrd, boxl )
+            ! skip calculation of frame if not multiple of stride
+            if (MOD(i,dcd_stride) /= 0) CYCLE
+
+            write(*,*) "@@ FRAME: ", i
+
             atmchg = my_atmchg
             atmeps = my_atmeps
             CALL mopac_scf_initialize
             CALL energy
-            CALL density_write( 'dens.mat' )
+            CALL density_write(trim(dens_file))
             CALL mopac_scf_options( iterations = -1 )
             atmchg = .0_dp
             atmeps = .0_dp
-            CALL density_read( 'dens.mat' )
+            CALL density_read(trim(dens_file))
             CALL energy
             write( 800, '(f20.10)' ) eqm
             CALL flush( 800 )
@@ -659,11 +661,11 @@ module CALCULATION_MODES
             do k = 1, nresid
                 write(*,*) "## GENERAL # ", i, j, k
                 ! skip QM residues...
-                if( k == int_nres ) cycle
+                if( k == int_nres ) CYCLE
                 ! skip WBulk residues...
-                if( k >= int_wbox(1) .and. k <= int_wbox(2) ) cycle
+                if( k >= int_wbox(1) .and. k <= int_wbox(2) ) CYCLE
                 ! skip CIons residues...
-                if( k >= int_ions(1) .and. k <= int_ions(2) ) cycle
+                if( k >= int_ions(1) .and. k <= int_ions(2) ) CYCLE
                 ! == Calculate interaction ==
                 atmchg = .0_dp
                 atmeps = .0_dp
@@ -673,7 +675,7 @@ module CALCULATION_MODES
                 atmchg( resind(k)+1 : resind(k+1) ) = my_atmchg( resind(k)+1 : resind(k+1) )
                 atmeps( resind(k)+1 : resind(k+1) ) = my_atmeps( resind(k)+1 : resind(k+1) )
                 ! Load Molecular Orbital and calc energy (without SCF)
-                CALL density_read( 'dens.mat' )
+                CALL density_read(trim(dens_file))
                 CALL energy
                 my_eqm(j) = eqm
                 my_lj(j)  = qmlj
@@ -688,7 +690,7 @@ module CALCULATION_MODES
 
             atmchg( resind(int_nint)+1 : resind(int_ions(2)+1) ) = my_atmchg( resind(int_nint)+1 : resind(int_ions(2)+1) )
             atmeps( resind(int_nint)+1 : resind(int_ions(2)+1) ) = my_atmeps( resind(int_nint)+1 : resind(int_ions(2)+1) )
-            CALL density_read( 'dens.mat' )
+            CALL density_read(trim(dens_file))
             CALL energy
             my_eqm(j) = eqm
             my_lj(j)  = qmlj
@@ -703,7 +705,7 @@ module CALCULATION_MODES
             atmchg( resind(int_wbox(1)+1): resind(int_wbox(2))+1 ) = my_atmchg( resind(int_wbox(1)+1): resind(int_wbox(2))+1 )
             atmeps( resind(int_wbox(1)+1): resind(int_wbox(2))+1 ) = my_atmeps( resind(int_wbox(1)+1): resind(int_wbox(2))+1 )
             ! -- en princpio no necesario por que al definirlo QM las cargas se hacen cero...
-            CALL density_read( 'dens.mat' )
+            CALL density_read(trim(dens_file))
             CALL energy
             my_eqm(j) = eqm
             my_lj(j)  = qmlj
