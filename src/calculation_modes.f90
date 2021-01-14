@@ -677,7 +677,7 @@ module CALCULATION_MODES
             atmeps = .0_dp
             atmchg = .0_dp
             CALL density_read(trim(dens_file))
-            CALL energy
+            CALL energy(print=.false.)
             write( 800, '(f20.10)' ) eqm
             CALL flush( 800 )
 
@@ -697,8 +697,8 @@ module CALCULATION_MODES
                 atmchg( resind(j)+1 : resind(j+1) ) = my_atmchg( resind(j)+1 : resind(j+1) )
                 atmeps( resind(j)+1 : resind(j+1) ) = my_atmeps( resind(j)+1 : resind(j+1) )
                 ! Load Molecular Orbital and calc energy (without SCF)
-                CALL density_read(trim(dens_file))
-                CALL energy
+                CALL density_read(trim(dens_file),print=.false.)
+                CALL energy(print=.false.)
                 my_eqm(inter) = eqm
                 my_lj(inter)  = qmlj
                 inter = inter + 1
@@ -712,8 +712,8 @@ module CALCULATION_MODES
             atmchg = MERGE(my_atmchg, atmchg, wbox_atoms)
             atmeps = MERGE(my_atmeps, atmeps, wbox_atoms)
             ! -- en princpio no necesario por que al definirlo QM las cargas se hacen cero... (??)
-            CALL density_read(trim(dens_file))
-            CALL energy
+            CALL density_read(trim(dens_file),print=.false.)
+            CALL energy(print=.false.)
             my_eqm(inter) = eqm
             my_lj(inter)  = qmlj
             inter = inter + 1
@@ -726,8 +726,8 @@ module CALCULATION_MODES
             atmeps = MERGE(my_atmeps, .0_dp, qm_sele)
             atmchg = MERGE(my_atmchg, atmchg, ions_atoms)
             atmeps = MERGE(my_atmeps, atmeps, ions_atoms)
-            CALL density_read(trim(dens_file))
-            CALL energy
+            CALL density_read(trim(dens_file),print=.false.)
+            CALL energy(print=.false.)
             my_eqm(inter) = eqm
             my_lj(inter)  = qmlj
 
