@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.1'
+    character(len=64), parameter       :: dynamon_version = '0.3.2'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -71,10 +71,8 @@ module INITIALIZATION
 
     integer                            :: dcd_stride = 1              ! Read only every n-th frame of the trajectory
     character(len=256)                 :: int_dcd = ''                ! Trajectory file along which calculate interactions
-    integer                            :: int_nint = 0                ! Number of residues to compute interactions with (aa + 1 H2O + ions)
-    integer                            :: int_nres = 0                ! Number of protein residues + ligands
-    integer                            :: int_wbox(2) = 0             ! First and last residue number for Water Box atoms
-    integer                            :: int_ions(2) = 0             ! First and last residue number for Ions atoms
+    character(len=128), allocatable    :: wbox_sname(:)               ! Array of subsystem names considered water box (def: 'BOX' 'SOL')
+    character(len=128), allocatable    :: ions_sname(:)               ! Array of subsystem names considered ions (def: 'IONS' 'CL' 'NA')
 
     character(len=64)                  :: kie_atom(3) = ''            ! Atom to calculate KIE (subsystem, residue_number, atom_name)
     integer                            :: kie_skip = 0                ! Number of frequencies to skip
@@ -196,7 +194,7 @@ module INITIALIZATION
         ! Read options from a .dynn file
         !--------------------------------------------------------------
 
-        use utils
+        use utils, only                    : append_1d
 
         implicit none
 
@@ -232,6 +230,12 @@ module INITIALIZATION
         if (.not. allocated(c_step))      allocate(c_step(c_nconstr))
         if (.not. allocated(c_file))      allocate(c_file(c_nconstr))
         if (.not. allocated(c_atoms))     allocate(c_atoms(c_nconstr,4))
+        if (.not. allocated(c_atoms))     allocate(wbox_sname(2))
+        if (.not. allocated(c_atoms))     allocate(ions_sname(3))
+
+        ! default subsystem names for interation
+        wbox_sname = (/'BOX', 'SOL'/)
+        ions_sname = (/'IONS', 'NA  ', 'CL  '/)
 
         ! read line by line and asign general variables
         open(unit=100, file=filename, status='old', action='read', form='formatted')
@@ -313,14 +317,12 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, dcd_stride
                 case ('INT_DCD')
                     read(100,*,iostat=io_stat) option, int_dcd
-                case ('INT_NINT')
-                    read(100,*,iostat=io_stat) option, int_nint
-                case ('INT_NRES')
-                    read(100,*,iostat=io_stat) option, int_nres
                 case ('INT_WBOX')
-                    read(100,*,iostat=io_stat) option, int_wbox(:)
+                    read(100,*,iostat=io_stat) option, arg
+                    CALL append_1d(wbox_sname, arg)
                 case ('INT_IONS')
-                    read(100,*,iostat=io_stat) option, int_ions(:)
+                    read(100,*,iostat=io_stat) option, arg
+                    CALL append_1d(ions_sname, arg)
                 case ('KIE_ATOM')
                     read(100,*,iostat=io_stat) option, kie_atom
                 case ('KIE_SKIP')
@@ -411,19 +413,19 @@ module INITIALIZATION
                                 read(100,*,iostat=io_stat) option, c_file(c_nconstr)
                             case DEFAULT
                                 read(100,*) arg
-                                if (p_warn) write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+                                if (p_warn) write(*,fmt='(2X,A,A)') "- UNKNOWN: ", trim(arg)
                         end select
                     end do
                 case ('QM', 'NOFIX')  ! skip selection section
                     read(100, *) arg
-                    if (p_warn) write(*,fmt='(A,A)') "Skipping selection: ", arg
+                    if (p_warn) write(*,fmt='(2X,A,A)') "- SKIPPING SECTION: ", trim(arg)
                     do
                         read(100, *, iostat=io_stat) option
                         if (io_stat/=0 .or. option=='QM' .or. option=='NOFIX') EXIT
                     end do
                 case DEFAULT
                     read(100,*) arg
-                    if (p_warn) write(*,fmt='(A,A)') "Omitting unknown option: ", arg
+                    if (p_warn) write(*,fmt='(2X,A,A)') "- UNKNOWN: ", trim(arg)
             end select
         end do
         close(unit=100)
@@ -472,11 +474,11 @@ module INITIALIZATION
         end if
 
         ! read command line arguments
-        write(*,*)
+        if (argn <= COMMAND_ARGUMENT_COUNT()) write(*,fmt='(/,A,A)') "Options read from command line:"
         do while (argn <= COMMAND_ARGUMENT_COUNT())
             CALL GETARG(argn, option)
             CALL GETARG(argn+1, arg)
-            write(*,fmt='(A,5X,A8,2X,A)') "Argument:", ADJUSTL(option(3:)), trim(arg)
+            write(*,fmt='(A,2X,A,2X,A)',advance='no') " - ARG:", ADJUSTL(trim(option)), trim(arg)
             select case (trim(option))
                 case ('--MODE')
                     read(arg,'(A)',iostat=io_stat) mode
@@ -537,6 +539,7 @@ module INITIALIZATION
                 case ('--N')
                     do i=1, c_nconstr
                         CALL GETARG(argn+i, arg)
+                        if (i>1) write(*,'(1X,A)',advance='no') trim(arg)
                         read(arg,*,iostat=io_stat) c_indx(i)
                     end do
                     argn = argn + c_nconstr - 1
@@ -544,10 +547,14 @@ module INITIALIZATION
                     c_dist_flg = .true.
                     do i=1, c_nconstr
                         CALL GETARG(argn+i, arg)
+                        if (i>1) write(*,'(1X,A)',advance='no') " ", trim(arg)
                         read(arg,*,iostat=io_stat) c_dist(i)
                     end do
                     argn = argn + c_nconstr - 1
+                case DEFAULT
+                    write(*,'(20X,A)',advance='no') "- UNKNOWN"
             end select
+            write(*,*)
             argn = argn + 2
         end do
 

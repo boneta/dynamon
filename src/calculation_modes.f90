@@ -603,33 +603,57 @@ module CALCULATION_MODES
     !  DYNAMON_INTERACTION  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine dynamon_interaction()
 
-        integer                            :: i, j, k
-        character(len=256)                 :: fmtString
+        use utils, only                    : append_1d
+
+        implicit none
+
+        integer                            :: i, j
+        character(len=128)                 :: fmtString
         character(len=128)                 :: dens_file
         type(dcd_type)                     :: trj
-        real(kind=dp)                      :: my_atmchg(natoms), &     ! atom charges
-                                              my_atmeps(natoms), &     ! atom LJ epsilon
-                                              my_eqm(int_nint), &
-                                              my_lj(int_nint)
+        integer                            :: inter
+        integer                            :: ninter
+        logical                            :: wbox_atoms(1:natoms), ions_atoms(1:natoms)
+        integer, allocatable               :: qm_res(:), wbox_res(:), ions_res(:)
+        real(kind=dp), allocatable         :: my_eqm(:), my_lj(:)
+        real(kind=dp)                      :: my_atmeps(natoms), &     ! atom LJ epsilon
+                                              my_atmchg(natoms)        ! atom charges
 
-        if (len_trim(name)==0) name = trim(coord_name)
+        ! add prefix to output file if name set
+        if (len_trim(name)>0) name = trim(name) // "-"
 
-        write(fmtString,*) int_nint
+        ! output files
+        dens_file = trim(name)//'dens.mat'
+        open( 500, file=trim(name)//'intmatrix_eqm.dat' )
+        open( 600, file=trim(name)//'intmatrix_lj.dat'  )
+        open( 700, file=trim(name)//'intmatrix_tot.dat' )
+        open( 800, file=trim(name)//'eqm_trj.dat' )
+
+        ! get global residue numbers that contain QM atoms
+        CALL res_in_atom_array(qm_sele, qm_res)
+        write(*,*) "@@ RESIDUES TREATED QM: ", qm_res
+
+        ! get residue number that match subsystem name for wbox and ions
+        wbox_atoms = ATOM_SELECTION( subsystem = wbox_sname )
+        CALL res_in_atom_array(wbox_atoms, wbox_res)
+        ions_atoms = ATOM_SELECTION( subsystem = ions_sname )
+        CALL res_in_atom_array(ions_atoms, ions_res)
+
+        ! count number of interactions
+        ! #res_total - #qm_res - #wbox_res - #ions_res + 2
+        ninter = nresid - SIZE(qm_res) - SIZE(wbox_res) - SIZE(ions_res) + 2
+
+        write(*,*) "@@ NUMBER OF INTERACTIONS: ", ninter
+        allocate(my_eqm(ninter), my_lj(ninter))
+        write(fmtString,*) ninter
         fmtString = '('//trim(adjustl(fmtString))//'f20.10)'
-
-        ! Output files
-        dens_file = 'dens.mat'
-        open( 500, file='intmatrix_eqm.dat' )
-        open( 600, file='intmatrix_lj.dat'  )
-        open( 700, file='intmatrix_tot.dat' )
-        open( 800, file='eqm_trj.dat' )
 
         CALL atoms_fix( .not. qm_sele )
 
-        atmchg14  = .0_dp
-        my_atmchg = atmchg
         atmeps14  = .0_dp
         my_atmeps = atmeps
+        atmchg14  = .0_dp
+        my_atmchg = atmchg
 
         CALL dcd_initialize( trj )
         CALL dcd_activate_read( trim(int_dcd), trj )
@@ -644,75 +668,72 @@ module CALCULATION_MODES
 
             write(*,*) "@@ FRAME: ", i
 
-            atmchg = my_atmchg
             atmeps = my_atmeps
+            atmchg = my_atmchg
             CALL mopac_scf_initialize
             CALL energy
             CALL density_write(trim(dens_file))
             CALL mopac_scf_options( iterations = -1 )
-            atmchg = .0_dp
             atmeps = .0_dp
+            atmchg = .0_dp
             CALL density_read(trim(dens_file))
             CALL energy
             write( 800, '(f20.10)' ) eqm
             CALL flush( 800 )
 
-            j = 1
-            do k = 1, nresid
-                write(*,*) "## GENERAL # ", i, j, k
-                ! skip QM residues...
-                if( k == int_nres ) CYCLE
-                ! skip WBulk residues...
-                if( k >= int_wbox(1) .and. k <= int_wbox(2) ) CYCLE
-                ! skip CIons residues...
-                if( k >= int_ions(1) .and. k <= int_ions(2) ) CYCLE
+            inter = 1
+            do j = 1, nresid
+                if( ANY(qm_res==j) ) CYCLE    ! skip QM residues
+                if( ANY(wbox_res==j) ) CYCLE  ! skip WBulk residues
+                if( ANY(ions_res==j) ) CYCLE  ! skip ions residues
+                write(*,*) "## INT #  FR: ", i, " INT: ", inter, " RES: ", j
                 ! == Calculate interaction ==
-                atmchg = .0_dp
                 atmeps = .0_dp
+                atmchg = .0_dp
                 ! Recover QM(Eps) vector
-                atmeps( resind(int_nres)+1 : resind(int_nres+1) ) = my_atmeps( resind(int_nres)+1 : resind(int_nres+1) )
+                ! FIXME: To be checked. Now done only for QM-atoms. Better with whole qm-residue??
+                atmeps = MERGE(my_atmeps, atmeps, qm_sele)
                 ! Recover MM(Chrg/Eps) vector for the selected residue
-                atmchg( resind(k)+1 : resind(k+1) ) = my_atmchg( resind(k)+1 : resind(k+1) )
-                atmeps( resind(k)+1 : resind(k+1) ) = my_atmeps( resind(k)+1 : resind(k+1) )
+                atmchg( resind(j)+1 : resind(j+1) ) = my_atmchg( resind(j)+1 : resind(j+1) )
+                atmeps( resind(j)+1 : resind(j+1) ) = my_atmeps( resind(j)+1 : resind(j+1) )
                 ! Load Molecular Orbital and calc energy (without SCF)
                 CALL density_read(trim(dens_file))
                 CALL energy
-                my_eqm(j) = eqm
-                my_lj(j)  = qmlj
-                j = j + 1
+                my_eqm(inter) = eqm
+                my_lj(inter)  = qmlj
+                inter = inter + 1
             end do
 
-            ! CIons residues...
-            write(*,*) "## IONS # ", j
-            atmchg = .0_dp
+            ! WBulk residues
+            write(*,*) "## INT #  FR: ", i, " INT: ", inter, " RES: WATERS"
             atmeps = .0_dp
-            atmeps( resind(int_nres)+1 : resind(int_nres+1) ) = my_atmeps( resind(int_nres)+1 : resind(int_nres+1) )
-
-            atmchg( resind(int_nint)+1 : resind(int_ions(2)+1) ) = my_atmchg( resind(int_nint)+1 : resind(int_ions(2)+1) )
-            atmeps( resind(int_nint)+1 : resind(int_ions(2)+1) ) = my_atmeps( resind(int_nint)+1 : resind(int_ions(2)+1) )
+            atmchg = .0_dp
+            atmeps = MERGE(my_atmeps, atmeps, qm_sele)
+            atmchg = MERGE(my_atmchg, atmchg, wbox_atoms)
+            atmeps = MERGE(my_atmeps, atmeps, wbox_atoms)
+            ! -- en princpio no necesario por que al definirlo QM las cargas se hacen cero... (??)
             CALL density_read(trim(dens_file))
             CALL energy
-            my_eqm(j) = eqm
-            my_lj(j)  = qmlj
-            j = j + 1
+            my_eqm(inter) = eqm
+            my_lj(inter)  = qmlj
+            inter = inter + 1
 
-            ! WBulk residues...
-            write(*,*) "## WATER # ", j
-            atmchg = .0_dp
+            ! ions residues
+            write(*,*) "## INT #  FR: ", i, " INT: ", inter, " RES: IONS"
             atmeps = .0_dp
-            atmeps( resind(int_nres+1): resind(int_nres)+1 ) = my_atmeps( resind(int_nres+1): resind(int_nres)+1 )
-
-            atmchg( resind(int_wbox(1)+1): resind(int_wbox(2))+1 ) = my_atmchg( resind(int_wbox(1)+1): resind(int_wbox(2))+1 )
-            atmeps( resind(int_wbox(1)+1): resind(int_wbox(2))+1 ) = my_atmeps( resind(int_wbox(1)+1): resind(int_wbox(2))+1 )
-            ! -- en princpio no necesario por que al definirlo QM las cargas se hacen cero...
+            atmchg = .0_dp
+            ! atmeps = MERGE(my_atmeps, atmeps, qm_sele)
+            atmeps = MERGE(my_atmeps, .0_dp, qm_sele)
+            atmchg = MERGE(my_atmchg, atmchg, ions_atoms)
+            atmeps = MERGE(my_atmeps, atmeps, ions_atoms)
             CALL density_read(trim(dens_file))
             CALL energy
-            my_eqm(j) = eqm
-            my_lj(j)  = qmlj
+            my_eqm(inter) = eqm
+            my_lj(inter)  = qmlj
 
-            write( 500, fmtString ) my_eqm(1:int_nint)
-            write( 600, fmtString ) my_lj(1:int_nint)
-            write( 700, fmtString ) my_eqm(1:int_nint)+my_lj(1:int_nint)
+            write( 500, fmtString ) my_eqm(1:ninter)
+            write( 600, fmtString ) my_lj(1:ninter)
+            write( 700, fmtString ) my_eqm(1:ninter)+my_lj(1:ninter)
             CALL flush( 500 )
             CALL flush( 600 )
             CALL flush( 700 )
@@ -720,6 +741,32 @@ module CALCULATION_MODES
         end do
 
         CALL dcd_deactivate( trj )
+
+        contains
+
+        subroutine res_in_atom_array(atom_array, res_array)
+
+            !----------------------------------------------------------
+            ! Return an array of global residue numbers that contain
+            ! any atom that is True in an atom array
+            !----------------------------------------------------------
+
+            implicit none
+            logical, intent(in)                  :: atom_array(natoms)
+            integer, allocatable, intent(out)    :: res_array(:)
+            integer                              :: i, j
+
+            if (.not. allocated(res_array)) allocate(res_array(0))
+            do i = 1, nresid
+                do j = resind(i)+1, resind(i+1)
+                    if (atom_array(j)) then
+                        CALL append_1d(res_array, i)
+                        EXIT
+                    end if
+                end do
+            end do
+
+        end subroutine
 
     end subroutine
 

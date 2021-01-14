@@ -82,14 +82,12 @@ String arguments that contains slashes or commas should be between quotes.
 | IRC_DSP          | *real* | 0.01    | Displacement on every step |
 
 #### Interaction
-|   OPTION NAME    | TYPE        | DEFAULT | DESCRIPTION |
-| :--------------- | :--:        | :-----: | ----------- |
-| DCD_STRIDE       | *int*       | 1       | Read only every n-th frame of the trajectory |
-| INT_DCD          | *char*      | -       | Trajectory file along which calculate interactions |
-| INT_NINT         | *int*       | -       | Number of residues to compute interactions with (aa + 1 H2O + ions) |
-| INT_NRES         | *int*       | -       | Number of protein residues + ligands |
-| INT_WBOX         | *int* *int* | -       | First and last residue number for Water Box atoms |
-| INT_IONS         | *int* *int* | -       | First and last residue number for Ions atoms |
+|   OPTION NAME    | TYPE   | DEFAULT      | DESCRIPTION |
+| :--------------- | :--:   | :-----:      | ----------- |
+| DCD_STRIDE       | *int*  | 1            | Read only every n-th frame of the trajectory |
+| INT_DCD          | *char* | -            | Trajectory file along which calculate interactions |
+| INT_WBOX         | *char* | BOX, SOL     | Subsystem name to be considered water box (added to def) |
+| INT_IONS         | *char* | IONS, NA, CL | Subsystem name to be considered ions (added to def) |
 
 #### KIE
 |   OPTION NAME    | TYPE                | DEFAULT     | DESCRIPTION |

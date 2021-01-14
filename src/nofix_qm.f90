@@ -31,7 +31,7 @@ module NOFIX_QM
 
         character(len=64)                  :: subsystem(1)
         integer                            :: residue(1)
-        character(len=3)                   :: atom(1)
+        character(len=64)                  :: atom(1)
 
         logical, allocatable               :: sele(:)
         logical, allocatable               :: subsystems(:)
