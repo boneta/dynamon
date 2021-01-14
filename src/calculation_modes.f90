@@ -628,6 +628,7 @@ module CALCULATION_MODES
         open( 600, file=trim(name)//'intmatrix_lj.dat'  )
         open( 700, file=trim(name)//'intmatrix_tot.dat' )
         open( 800, file=trim(name)//'eqm_trj.dat' )
+        open( 900, file=trim(name)//'seq.resid' )
 
         ! get global residue numbers that contain QM atoms
         CALL res_in_atom_array(qm_sele, qm_res)
@@ -642,8 +643,17 @@ module CALCULATION_MODES
         ! count number of interactions
         ! #res_total - #qm_res - #wbox_res - #ions_res + 2
         ninter = nresid - SIZE(qm_res) - SIZE(wbox_res) - SIZE(ions_res) + 2
-
         write(*,*) "@@ NUMBER OF INTERACTIONS: ", ninter
+
+        ! write sequence of residues to calculate interactions
+        do i = 1, ninter
+          if( ANY(qm_res==i) .or. ANY(wbox_res==i) .or. ANY(ions_res==i)  ) CYCLE
+          write(900,'(A,4X,I6)') trim(resnam(i)), i
+        end do
+        write(900,'(A,X,I6)') "WATERS", SIZE(wbox_res)
+        write(900,'(A,X,I6)') "IONS  ", SIZE(ions_res)
+        flush(900)
+
         allocate(my_eqm(ninter), my_lj(ninter))
         write(fmtString,*) ninter
         fmtString = '('//trim(adjustl(fmtString))//'f20.10)'
@@ -739,6 +749,12 @@ module CALCULATION_MODES
             CALL flush( 700 )
 
         end do
+
+        close(500)
+        close(600)
+        close(700)
+        close(800)
+        close(900)
 
         CALL dcd_deactivate( trj )
 
