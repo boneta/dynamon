@@ -316,6 +316,8 @@ module CALCULATION_MODES
         write(*,"(a20,2f20.10)") ">>>  RP:", sqrt( sum( x_cur ** 2 ) ), etotal
 
         write(900, fmt='(A6,3X,F20.10)') 0, etotal
+        c_indx = 0
+        CALL out_dist_energy(trim(name)//".out")
 
         it1 = 1
         do while( ( it1 < it1_max ) .and. &
@@ -409,6 +411,8 @@ module CALCULATION_MODES
             CALL dcd_write( dcd, atmcrd, boxl )
 
             write(900, fmt='(A6,3X,F20.10)') it1, etotal
+            c_indx = irc_dir * it1
+            CALL out_dist_energy(trim(name)//".out")
 
             it1 = it1 + 1
         end do

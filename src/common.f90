@@ -211,6 +211,7 @@ module COMMON
           open(200, file=out_file, form='formatted', status='old', position='append')
         else
           open(200, file=out_file, form='formatted', status='new')
+          write(200, '(A,I3,A)') "## ", c_nconstr, "  #  DIST  Etot  Eqm  INDX  DIST_REF"
         endif
 
         ! current distances
