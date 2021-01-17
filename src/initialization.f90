@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.2'
+    character(len=64), parameter       :: dynamon_version = '0.3.3'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -457,12 +457,6 @@ module INITIALIZATION
 
         ! first argument as input file name
         CALL GETARG(1,input_file)
-        ! check help
-        if (input_file=='-h' .or. input_file=='--help') then
-            write(*,fmt='(/,/,A,/)') 'DYNAMON -- A general-purpose script for common calculations with fDynamo'
-            write(*,fmt='(A,/)')       '  USAGE:   dynamon [.dynn] [[--option arg] ...]'
-            STOP
-        end if
         ! check input_file not found
         INQUIRE(file=trim(input_file),exist=f_exist)
         if (f_exist) then
@@ -480,6 +474,10 @@ module INITIALIZATION
             CALL GETARG(argn+1, arg)
             write(*,fmt='(A,2X,A,2X,A)',advance='no') " - ARG:", ADJUSTL(trim(option)), trim(arg)
             select case (trim(option))
+                case ('-h','-H','--help','--HELP')
+                    write(*,fmt='(/,/,A,/)') 'DYNAMON -- A general-purpose script for common calculations with fDynamo'
+                    write(*,fmt='(A,/)')       '  USAGE:   dynamon [.dynn] [[--option arg] ...]'
+                    STOP
                 case ('--MODE')
                     read(arg,'(A)',iostat=io_stat) mode
                 case ('--NAME')

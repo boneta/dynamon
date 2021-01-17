@@ -10,3 +10,6 @@ export DYNAMON=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
 
 #include compiled executables and bin folder in PATH
 export PATH=$PATH:${DYNAMON}/user/exe:${DYNAMON}/bin
+
+# source autocompletion
+source ${DYNAMON}/.autocompletion.sh
