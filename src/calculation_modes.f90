@@ -194,12 +194,15 @@ module CALCULATION_MODES
         real( kind=dp ), allocatable       :: evec(:,:)
         real( kind=dp ), allocatable       :: eval(:), x_cur(:), g_cur(:), vec(:), mw(:), x_ref(:), x_1st(:)
         type( dcd_type )                   :: dcd
-        real( kind=dp ), parameter         :: large = 1000000._dp
-        real( kind=dp ), parameter         :: stp = 150._dp
-        real( kind=dp ), parameter         :: l_tol = 0.00000001_dp
+
+        real( kind=dp ), parameter         :: large       = 1000000._dp
+        real( kind=dp ), parameter         :: stp         = 150._dp
+        real( kind=dp ), parameter         :: l_tol       = 0.00000001_dp
+        real( kind=dp ), parameter         :: cur_rms_thr = 1.0_dp
+        real( kind=dp ), parameter         :: max_rms_thr = 5.0_dp
 
         it1_max = irc_steps
-        it2_max = irc_steps + 1000
+        it2_max = 2000
 
         if (len_trim(name)==0) then
             if (irc_dir == -1) then
@@ -221,7 +224,7 @@ module CALCULATION_MODES
             type    = "CORD", &
             natoms  = natoms, &
             nfixed  = nfixed, &
-            nframes = it1_max, &
+            nframes = it1_max + 1, &
             qfix    = atmfix )
 
         acs_n = count( qm_sele )
@@ -321,7 +324,7 @@ module CALCULATION_MODES
 
         it1 = 1
         do while( ( it1 < it1_max ) .and. &
-            ( ( cur_rms > 1.49_dp .or. max_rms > 2.23_dp ) .or. it1 < 10 ) )
+            ( ( cur_rms > cur_rms_thr .or. max_rms > max_rms_thr ) .or. it1 < 10 ) )
 
             do i = 1, acs_n
                 j = 3 * ( i - 1 )
