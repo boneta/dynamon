@@ -46,19 +46,22 @@ module CALCULATION_MODES
 
         logical, intent(in)                :: exit_after
 
-        character(len=256)                 :: ffname
+        character(len=256)                 :: fffile_bin
         integer                            :: dot_position
 
         ! get FF name without suffix
-        ffname = fffile
-        dot_position = SCAN(trim(ffname), '.', back=.true.)
-        if (dot_position > 0) ffname = ffname(1:dot_position-1)
+        dot_position = SCAN(trim(fffile), '.', back=.true.)
+        if (dot_position > 0) then
+            fffile_bin = fffile(1:dot_position-1)
+        else
+            fffile_bin = fffile
+        end if
 
-        ! name of formatted FF file
-        ffname = trim(ffname) // '_processed.ff'
+        ! name of formatted FF binary file
+        fffile_bin = trim(fffile_bin) // '.ffb'
 
-        CALL mm_file_process(trim(ffname), trim(fffile))
-        CALL mm_system_construct(trim(ffname), trim(seqfile))
+        CALL mm_file_process(trim(fffile_bin), trim(fffile))
+        CALL mm_system_construct(trim(fffile_bin), trim(seqfile))
         CALL mm_system_write(trim(binfile))
 
         if (Len_Trim(coord) > 0) CALL coordinates_read(trim(coord))
