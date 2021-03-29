@@ -1,0 +1,44 @@
+# Compile fDynamo and DYNAMON, and run a test calculation from docs/example
+
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/*'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/*'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Compile fDynamo
+      working-directory: fDynamo
+      run: make all
+
+    - name: Compile DYNAMON
+      working-directory: src
+      run: make dynamon
+
+    - name: Environment setup
+      run: |
+        source dynamon.rc
+        echo "$PWD/bin" >> $GITHUB_PATH
+
+    - name: Test
+      working-directory: docs/example
+      run: |
+        dynamon --MODE SP --COORD hbdef1.crd --SYS hbdef1
+        dynamon options.dynn
