@@ -577,8 +577,13 @@ module INITIALIZATION
         if (Len_Trim(binfile) == 0) binfile = trim(sysname)//".bin"
         if (Len_Trim(selefile) == 0) selefile = trim(sysname)//".dynn"
 
-        ! if build binary mode skip checking of binfile/selefile/coordfile
-        if (mode == 'BIN') RETURN
+        ! if build binary mode check seqfile/fffile
+        ! and skip checking for binfile/selefile/coordfile
+        if (mode == 'BIN') then
+          if (Len_Trim(seqfile) == 0) CALL dynn_log(1, 'Missing mandatory option', 'SEQ')
+          if (Len_Trim(fffile) == 0) CALL dynn_log(1, 'Missing mandatory option', 'FF')
+          RETURN
+        end if
 
         ! check binfile/selefile existence or try to find in user folder
         CALL GET_ENVIRONMENT_VARIABLE('DYNAMON', dynamon_path)  ! get DYNAMON installation path
@@ -586,7 +591,7 @@ module INITIALIZATION
         CALL check_exist_or_find(selefile)
 
         ! check coordinate
-        if (Len_Trim(coord) == 0) CALL dynn_log(1, 'Missing mandatory options', 'COORD')
+        if (Len_Trim(coord) == 0) CALL dynn_log(1, 'Missing mandatory option', 'COORD')
         CALL check_exist_or_find(coord)
 
         ! get coord without extension
