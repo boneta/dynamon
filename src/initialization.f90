@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.3'
+    character(len=64), parameter       :: dynamon_version = '0.3.4'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -456,7 +456,7 @@ module INITIALIZATION
         end if
 
         ! first argument as input file name
-        CALL GETARG(1,input_file)
+        CALL GET_COMMAND_ARGUMENT(1,input_file)
         ! check input_file not found
         INQUIRE(file=trim(input_file),exist=f_exist)
         if (f_exist) then
@@ -470,10 +470,10 @@ module INITIALIZATION
         ! read command line arguments
         if (argn <= COMMAND_ARGUMENT_COUNT()) write(*,fmt='(/,A,A)') "Options read from command line:"
         do while (argn <= COMMAND_ARGUMENT_COUNT())
-            CALL GETARG(argn, option)
-            CALL GETARG(argn+1, arg)
-            write(*,fmt='(A,2X,A,2X,A)',advance='no') " - ARG:", ADJUSTL(trim(option)), trim(arg)
-            select case (trim(option))
+            CALL GET_COMMAND_ARGUMENT(argn, option)
+            CALL GET_COMMAND_ARGUMENT(argn+1, arg)
+            write(*,fmt='(A,2X,A,2X,A)',advance='no') " ARG:", ADJUSTL(trim(option)), trim(arg)
+            select case (option)
                 case ('-h','-H','--help','--HELP')
                     write(*,fmt='(/,/,A,/)') 'DYNAMON -- A general-purpose script for common calculations with fDynamo'
                     write(*,fmt='(A,/)')       '  USAGE:   dynamon [.dynn] [[--option arg] ...]'
@@ -534,21 +534,21 @@ module INITIALIZATION
                     read(arg,*,iostat=io_stat) kie_hess
                 case ('--INT_DCD')
                     read(arg,'(A)',iostat=io_stat) int_dcd
-                case ('--N')
-                    do i=1, c_nconstr
-                        CALL GETARG(argn+i, arg)
-                        if (i>1) write(*,'(1X,A)',advance='no') trim(arg)
-                        read(arg,*,iostat=io_stat) c_indx(i)
+                case ('--N', '--DIST')
+                    i = 1
+                    do while (argn + i <= COMMAND_ARGUMENT_COUNT() .and. arg(1:2) /= '--')
+                        if (i>1) write(*,'(A,1X,A)',advance='no') " ", trim(arg)
+                        if (i>c_nconstr) CALL dynn_log(1, 'More argument modifiers than number of constraints')
+                        select case (option)
+                            case('--N')
+                                read(arg,*,iostat=io_stat) c_indx(i)
+                            case('--DIST')
+                                read(arg,*,iostat=io_stat) c_dist(i)
+                        end select
+                        i = i + 1
+                        CALL GET_COMMAND_ARGUMENT(argn+i, arg)
                     end do
-                    argn = argn + c_nconstr - 1
-                case ('--DIST')
-                    c_dist_flg = .true.
-                    do i=1, c_nconstr
-                        CALL GETARG(argn+i, arg)
-                        if (i>1) write(*,'(1X,A)',advance='no') " ", trim(arg)
-                        read(arg,*,iostat=io_stat) c_dist(i)
-                    end do
-                    argn = argn + c_nconstr - 1
+                    argn = argn + i - 2
                 case DEFAULT
                     write(*,'(20X,A)',advance='no') "- UNKNOWN"
             end select

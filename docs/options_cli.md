@@ -61,8 +61,8 @@ the following argument.
 The definition of constraints is necessarily made through an input file, although
 some option can be added or modified with command line arguments.
 
-The same number of argument in an option must be used as number of constraints defined,
-assigning to them in corresponding order.
+The number of arguments in an option must be lower or equal to the number of constraints defined,
+and they will be assigned in corresponding order. To skip a middle value unmodified, use "-".
 
 |   ARGUMENT NAME  | TYPE   | DESCRIPTION |
 | :--------------- | :--:   | ----------- |
