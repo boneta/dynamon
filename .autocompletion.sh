@@ -14,11 +14,12 @@ _dynamon_compl() {
   local p=${COMP_WORDS[COMP_CWORD-n]}
   COMPREPLY=()
   if (( $COMP_CWORD <= 1 )) || [[ $c == -* ]]; then
-    COMPREPLY=( $(compgen -S ' ' -X '!*.dynn' -f -- $c ; compgen -S '/' -d -- $c ; compgen -S ' ' -W $'-h\n--help\n--MODE\n--NAME\n--SYS\n--BIN\n--SELE\n--COORD\n--FF\n--SEQ\n--CORES\n--MEMORY\n--CHARGE\n--MULTI\n--SEMIEMP\n--GAUSS\n--FUNC\n--BASIS\n--CG_TOLERANCE\n--LBFGSB_TOLERANCE\n--TEMP\n--EQUI\n--PROD\n--VEL\n--LOC_STEPS\n--TS\n--IRC_DIR\n--KIE_SKIP\n--KIE_HESS\n--INT_DCD\n--N\n--DIST' -- $c) )
+    COMPREPLY=( $(compgen -S ' ' -X '!*.dynn' -f -- $c ; compgen -S '/' -d -- $c ; compgen -S ' ' -W $'-h\n--help\n--MODE\n--NAME\n--OUT\n--SYS\n--BIN\n--SELE\n--COORD\n--FF\n--SEQ\n--CORES\n--MEMORY\n--CHARGE\n--MULTI\n--SEMIEMP\n--GAUSS\n--FUNC\n--BASIS\n--CG_TOLERANCE\n--LBFGSB_TOLERANCE\n--TEMP\n--EQUI\n--PROD\n--VEL\n--LOC_STEPS\n--TS\n--IRC_DIR\n--KIE_SKIP\n--KIE_HESS\n--INT_DCD\n--N\n--DIST' -- $c) )
     return 0
   fi
   case "$p" in
     --MODE) (( $n <= 1 )) && COMPREPLY=( $(compgen -S ' ' -W $'BIN\nSP\nMINI\nLOCATE\nIRC\nMD\nINTERACTION\nKIE' -- $c));;
+    --OUT) (( $n <= 1 )) && COMPREPLY=( $(compgen -S ' ' -X '!*.out' -f -- $c ; compgen -S '/' -d $c));;
     --SYS) (( $n <= 1 )) && COMPREPLY=( $(compgen -S ' ' -W "$(ls $DYNAMON/user/ | awk -F'.' '{print $1}' )" -- $c));;
     --BIN) (( $n <= 1 )) && COMPREPLY=( $(compgen -S ' ' -W "$(ls $DYNAMON/user/ | grep .bin )" -- $c; compgen -S ' ' -X '!*.bin' -f -- $c));;
     --SELE) (( $n <= 1 )) && COMPREPLY=( $(compgen -S ' ' -W "$(ls $DYNAMON/user/ | grep .dynn )" -- $c; compgen -S ' ' -X '!*.dynn' -f -- $c));;
