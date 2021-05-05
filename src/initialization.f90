@@ -26,6 +26,8 @@ module INITIALIZATION
     character(len=128)                 :: MODE = ''                   ! Calculation mode
 
     character(len=256)                 :: name = ''                   ! Calculation name/title
+    character(len=256)                 :: outfile = ''                ! Output file with distances and energies
+
     character(len=256)                 :: binfile = ''                ! System binary file (.bin)
     character(len=256)                 :: selefile = ''               ! System selection file for QM, NOFIX and hard defaults (.dynn)
     character(len=256)                 :: sysname = ''                ! System base name (without suffix)
@@ -249,6 +251,8 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, mode
                 case ('NAME')
                     read(100,*,iostat=io_stat) option, name
+                case ('OUT')
+                    read(100,*,iostat=io_stat) option, outfile
                 case ('SYS')
                     read(100,*,iostat=io_stat) option, sysname
                 case ('BIN')
@@ -482,6 +486,8 @@ module INITIALIZATION
                     read(arg,'(A)',iostat=io_stat) mode
                 case ('--NAME')
                     read(arg,'(A)',iostat=io_stat) name
+                case ('--OUT')
+                    read(arg,'(A)',iostat=io_stat) outfile
                 case ('--SYS')
                     read(arg,'(A)',iostat=io_stat) sysname
                 case ('--BIN')

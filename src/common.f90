@@ -206,11 +206,11 @@ module COMMON
         if (.not. ALLOCATED(a_anum)) CALL get_atom_numbers
 
         ! check file existence to append or create new
-        INQUIRE(file=out_file, exist=f_exist)
+        INQUIRE(file=trim(out_file), exist=f_exist)
         if (f_exist) then
-          open(200, file=out_file, form='formatted', status='old', position='append')
+          open(200, file=trim(out_file), form='formatted', status='old', position='append')
         else
-          open(200, file=out_file, form='formatted', status='new')
+          open(200, file=trim(out_file), form='formatted', status='new')
           write(200, '(A,I3,A)') "## ", c_nconstr, "  #  DIST  Etot  Eqm  INDX  DIST_REF"
         endif
 

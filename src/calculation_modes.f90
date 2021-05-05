@@ -78,10 +78,11 @@ module CALCULATION_MODES
     subroutine dynamon_sp()
 
         if (len_trim(name)==0) name = trim(coord_name) // "-sp"
+        if (len_trim(outfile)==0) outfile = trim(name) // ".out"
 
         CALL energy
 
-        if (mode == 'CORR') CALL out_dist_energy(trim(name)//".out")
+        if (mode == 'CORR') CALL out_dist_energy(outfile)
 
     end subroutine
 
@@ -89,14 +90,18 @@ module CALCULATION_MODES
     subroutine dynamon_minimization()
 
         if (len_trim(name)==0) name = trim(coord_name) // "-mini"
+        if (len_trim(outfile)==0) outfile = trim(name) // ".out"
 
         CALL define_constraints(print_file=.false.)
         CALL calculate_gradient
         CALL calculate_minimization
 
-        if (mode == 'SCAN' .or. mode == 'PES') CALL out_dist_energy(trim(name)//".out")
+        if (mode == 'SCAN' .or. mode == 'PES') then
+            CALL out_dist_energy(outfile)
+        else
+            CALL pdb_write(trim(name)//".pdb")
+        end if
         CALL coordinates_write(trim(name)//".crd")
-        CALL pdb_write(trim(name)//".pdb")
 
     end subroutine
 
@@ -217,7 +222,8 @@ module CALCULATION_MODES
             end if
         end if
 
-        ! file to dump energies
+        ! files to dump distances and energies (.out) / energies (.dat)
+        if (len_trim(outfile)==0) outfile = trim(name) // ".out"
         open(unit=900, file=trim(name)//".dat", form='formatted')
 
         CALL dcd_initialize( dcd )
@@ -323,7 +329,7 @@ module CALCULATION_MODES
 
         write(900, fmt='(I5,2X,F20.10)') 0, etotal
         c_indx = 0
-        CALL out_dist_energy(trim(name)//".out")
+        CALL out_dist_energy(outfile)
 
         it1 = 1
         do while( ( it1 < it1_max ) .and. &
@@ -418,7 +424,7 @@ module CALCULATION_MODES
 
             write(900, fmt='(I5,2X,F20.10)') it1, etotal
             c_indx = irc_dir * it1
-            CALL out_dist_energy(trim(name)//".out")
+            CALL out_dist_energy(outfile)
 
             it1 = it1 + 1
         end do

@@ -8,7 +8,10 @@ the following argument.
 |   ARGUMENT NAME  | TYPE   | DESCRIPTION |
 | :--------------- | :--:   | ----------- |
 | --MODE           | *char* | Type of calculation |
+| | |
 | --NAME           | *char* | Base name for files |
+| --OUT            | *char* | File with distances and energies |
+| | |
 | --SYS            | *char* | System base name (for searching BIN/SELE) |
 | --BIN            | *char* | Binary file of system (.bin) |
 | --SELE           | *char* | Selection file for QM and NOFIX (.dynn) |
