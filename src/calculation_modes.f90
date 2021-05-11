@@ -574,8 +574,11 @@ module CALCULATION_MODES
     !  DYNAMON_MD  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     subroutine dynamon_md()
 
+        implicit none
+
         integer                            :: my_random
         real(8)                            :: fortran_random
+        real(8)                            :: delta_t, ps_total
 
         if (len_trim(name)==0) name = trim(coord_name) // "-md"
 
@@ -614,6 +617,15 @@ module CALCULATION_MODES
 
         CALL coordinates_write(trim(name)//".crd")
         CALL velocity_write(trim(name)//".vel")
+
+        ! md performance info
+        CALL SYSTEM_CLOCK(t_end)
+        delta_t = real(t_end-t_ini)/clock_rate
+        ps_total = md_step * (equilibration + production)
+        write(*,fmt='(/,A,F10.3,A,F12.3,A,F10.2,A)') 'MD Performance:', &
+                                                      ps_total, ' ps', &
+                                                      ps_total / (delta_t/8.64D4), ' ps/day', &
+                                                      (delta_t/3.6D3) / ps_total, ' hour/ps'
 
     end subroutine
 
