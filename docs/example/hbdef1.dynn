@@ -1,7 +1,7 @@
 
 CHARGE 0
 
-QM
+SELECTION QM
     S A
         R 1
             A OD1
@@ -23,9 +23,9 @@ QM
             A CB
             A HB1
             A HB2
-QM
+SELECTION
 
-NOFIX
+SELECTION NOFIX
     S A
         R 1
         R 2
@@ -470,4 +470,4 @@ NOFIX
         R 1
         R 3
         R 4
-NOFIX
+SELECTION

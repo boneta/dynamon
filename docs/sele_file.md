@@ -1,10 +1,10 @@
 # Selection file
 A plain-text file (.dynn), following the [input file](./options_file.md#format-specifications)
-format, that is used to specify the QM atoms and NOFIX atoms.
+format, that is used to specify a selection, such as the QM atoms or NOFIX atoms.
 
 #### Selection blocks
-A selection is specified in a delimited block, beginning and ending with the keywords
-**QM** or **NOFIX**.
+A selection is specified in a delimited block, beginning with the keyword **SELECTION** and the name of
+the selection (*QM* or *NOFIX*). It must be ended with another **SELECTION**.
 
 Inside, the available hierarchical options are: *subsystem*, *residue number* and *atom name*. \
 The are selected with the corresponding option and followed by its argument. \

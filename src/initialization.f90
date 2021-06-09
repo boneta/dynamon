@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.4'
+    character(len=64), parameter       :: dynamon_version = '0.3.5'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -420,12 +420,12 @@ module INITIALIZATION
                                 if (p_warn) write(*,fmt='(2X,A,A)') "- UNKNOWN: ", trim(arg)
                         end select
                     end do
-                case ('QM', 'NOFIX')  ! skip selection section
-                    read(100, *) arg
-                    if (p_warn) write(*,fmt='(2X,A,A)') "- SKIPPING SECTION: ", trim(arg)
+                case ('SELECTION')  ! skip selection section
+                    read(100, *) option, arg
+                    if (p_warn) write(*,fmt='(2X,A,A)') "- SKIPPING SELECTION: ", trim(arg)
                     do
                         read(100, *, iostat=io_stat) option
-                        if (io_stat/=0 .or. option=='QM' .or. option=='NOFIX') EXIT
+                        if (io_stat/=0 .or. option=='SELECTION') EXIT
                     end do
                 case DEFAULT
                     read(100,*) arg

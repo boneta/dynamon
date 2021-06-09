@@ -41,4 +41,4 @@ jobs:
       working-directory: docs/example
       run: |
         dynamon --MODE SP --COORD hbdef1.crd --SYS hbdef1
-        dynamon options.dynn
+        dynamon mini.dynn
