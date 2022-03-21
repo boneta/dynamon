@@ -71,7 +71,7 @@ CHARACTER ( LEN = 16 ), PARAMETER :: FORCE_FIELD = "OPLS_AA"
 INTEGER, PARAMETER :: LINE_LENGTH = 132
 
 ! . The maximum record length for a binary file.
-INTEGER, PARAMETER :: MAX_RECORD_LENGTH = 2**20 ! Linux.
+INTEGER, PARAMETER :: MAX_RECORD_LENGTH = 2**30 ! Linux.
 
 ! . The maximum FORTRAN stream number.
 INTEGER, PARAMETER :: MAX_UNITS = 100
