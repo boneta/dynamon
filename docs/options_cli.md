@@ -11,6 +11,7 @@ the following argument.
 | | |
 | --NAME           | *char* | Base name for files |
 | --OUT            | *char* | File with distances and energies |
+| --PDB            | *bool* | Output also in PDB file |
 | | |
 | --SYS            | *char* | System base name (for searching BIN/SELE) |
 | --BIN            | *char* | Binary file of system (.bin) |

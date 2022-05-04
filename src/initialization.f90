@@ -27,6 +27,7 @@ module INITIALIZATION
 
     character(len=256)                 :: name = ''                   ! Calculation name/title
     character(len=256)                 :: outfile = ''                ! Output file with distances and energies
+    logical                            :: pdb_out = .false.           ! Output also in PDB file
 
     character(len=256)                 :: binfile = ''                ! System binary file (.bin)
     character(len=256)                 :: selefile = ''               ! System selection file for QM, NOFIX and hard defaults (.dynn)
@@ -261,6 +262,8 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, selefile
                 case ('COORD')
                     read(100,*,iostat=io_stat) option, coord
+                case ('PDB')
+                    read(100,*,iostat=io_stat) option, pdb_out
                 case ('FF')
                     read(100,*,iostat=io_stat) option, fffile
                 case ('SEQ')
@@ -496,6 +499,8 @@ module INITIALIZATION
                     read(arg,'(A)',iostat=io_stat) selefile
                 case ('--COORD')
                     read(arg,'(A)',iostat=io_stat) coord
+                case ('--PDB')
+                    read(arg,'(A)',iostat=io_stat) pdb_out
                 case ('--FF')
                     read(arg,'(A)',iostat=io_stat) fffile
                 case ('--SEQ')

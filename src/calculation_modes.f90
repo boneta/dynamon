@@ -90,10 +90,9 @@ module CALCULATION_MODES
 
         if (mode == 'SCAN' .or. mode == 'PES') then
             CALL out_dist_energy(outfile)
-        else
-            CALL pdb_write(trim(name)//".pdb")
         end if
         CALL coordinates_write(trim(name)//".crd")
+        if (pdb_out) CALL pdb_write(trim(name)//".pdb")
 
     end subroutine
 
@@ -152,7 +151,7 @@ module CALCULATION_MODES
         CALL cleanup_optimization
 
         CALL coordinates_write(trim(name)//".crd")
-        CALL pdb_write(trim(name)//".pdb")
+        if (pdb_out) CALL pdb_write(trim(name)//".pdb")
 
         CALL atoms_fix( .not. ( nofix_sele .or. qm_sele ) )
         CALL gradient
@@ -427,7 +426,7 @@ module CALCULATION_MODES
         close(io_unit)
 
         CALL coordinates_write( trim(name)//".crd" )
-        CALL pdb_write( trim(name)//".pdb" )
+        if (pdb_out) CALL pdb_write( trim(name)//".pdb" )
 
         deallocate( eval, evec )
         deallocate( x_cur, g_cur, vec, mw, x_ref )

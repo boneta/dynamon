@@ -18,6 +18,7 @@ String arguments that contains slashes or commas should be between quotes.
 | | | |
 | NAME             | *char* | *mode*  | Base name for files |
 | OUT              | *char* | *mode*.out  | File with distances and energies |
+| PDB              | *bool* | F       | Output also in PDB file |
 | | | |
 | SYS              | *char* | -       | System base name (for searching BIN/SELE) |
 | BIN              | *char* | -       | Binary file of system (.bin) |
