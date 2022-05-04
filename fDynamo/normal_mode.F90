@@ -473,7 +473,7 @@ CONTAINS
    END DO
    FD = NEXT_UNIT()
    CALL ENCODE_INTEGER( MODE, FN, "(I10)" )
-   FN = "nmode." // TRIM( FN )
+   FN = "nmode." // TRIM( FN ) // ".xyz"
    OPEN( UNIT = FD, FILE = TRIM( FN ), ACTION = "WRITE", FORM = "FORMATTED", STATUS = "UNKNOWN" )
    DO ICYCLE = 1, NCYCLES
       DO IFRAME = 1, NFRAMES

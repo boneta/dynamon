@@ -102,8 +102,8 @@ module CALCULATION_MODES
 
         use panadero
 
-        integer                            :: i, j
-        real(8), allocatable               :: x(:)
+        integer                            :: i, j, io_unit
+        real(8), allocatable               :: pan_x(:)
 
         if (len_trim(name)==0) name = trim(coord_name) // "-loc"
 
@@ -123,18 +123,18 @@ module CALCULATION_MODES
             print_frequency    = 1, &
             trajectory         = "snapshot.dcd" )
 
-        allocate( x(1:3*count(qm_sele)) )
+        allocate( pan_x(1:3*count(qm_sele)) )
         j = -3
         do i = 1, natoms
             if( qm_sele(i) ) then
             j = j + 3
-            x(j+1:j+3) = atmcrd(1:3,i)
+            pan_x(j+1:j+3) = atmcrd(1:3,i)
             end if
         end do
 
         CALL baker_search( &
             fcalc              = egh_calc, &
-            x                  = x, &
+            x                  = pan_x, &
             print_frequency    = 1, &
             step_number        = loc_steps, &
             maximum_step       = 0.1_dp, &
@@ -145,7 +145,7 @@ module CALCULATION_MODES
         do i = 1, natoms
             if( qm_sele(i) ) then
                 j = j + 3
-                atmcrd(1:3,i) = x(j+1:j+3)
+                atmcrd(1:3,i) = pan_x(j+1:j+3)
             end if
         end do
 
@@ -156,19 +156,19 @@ module CALCULATION_MODES
 
         CALL atoms_fix( .not. ( nofix_sele .or. qm_sele ) )
         CALL gradient
-        j = next_unit()
-        open( unit = j, file = "forces.dump", action = "write", form = "formatted" )
+        io_unit = next_unit()
+        open( unit = io_unit, file = "forces.dump", action = "write", form = "formatted" )
         do i = 1, natoms
-            write( j, "(4f20.10)") atmder(1:3,i), sqrt(sum(atmder(1:3,i)*atmder(1:3,i))/3._dp)
+            write(io_unit, "(4f20.10)") atmder(1:3,i), sqrt(sum(atmder(1:3,i)*atmder(1:3,i))/3._dp)
         end do
-        close( j )
+        close(io_unit)
 
         CALL atoms_fix( .not. qm_sele )
         use_hessian_recalc = 1
         CALL hessian
-        open( unit = j, file = "hessian.dump", action = "write", form = "unformatted" )
-        write( j ) atmhes
-        close( j )
+        open( unit = io_unit, file = "hessian.dump", action = "write", form = "unformatted" )
+        write( io_unit ) atmhes
+        close(io_unit)
         CALL project_rotation_translation( atmhes, .true. )
         CALL normal_mode_frequencies( atmhes )
         do i = 1, 10
