@@ -199,7 +199,7 @@ module COMMON
 
         character(len=256), intent(in)     :: out_file
 
-        integer                            :: i
+        integer                            :: i, io_unit
         logical                            :: f_exist
 
         if (.not. constr_flg) return
@@ -207,32 +207,33 @@ module COMMON
 
         ! check file existence to append or create new
         INQUIRE(file=trim(out_file), exist=f_exist)
+        io_unit = next_unit()
         if (f_exist) then
-          open(200, file=trim(out_file), form='formatted', status='old', position='append')
+          open(io_unit, file=trim(out_file), form='formatted', status='old', position='append')
         else
-          open(200, file=trim(out_file), form='formatted', status='new')
-          write(200, '(A,I3,A)') "## ", c_nconstr, "  #  DIST  Etot  Eqm  INDX  DIST_REF"
+          open(io_unit, file=trim(out_file), form='formatted', status='new')
+          write(io_unit, '(A,I3,A)') "## ", c_nconstr, "  #  DIST  Etot  Eqm  INDX  DIST_REF"
         endif
 
         ! current distances
         do i=1, c_nconstr
-          write(200, fmt='(f12.4,2X)', advance='no') distance_crd(i)
+          write(io_unit, fmt='(f12.4,2X)', advance='no') distance_crd(i)
         end do
 
         ! total energy
-        write(200, fmt='(f20.10,2X, f20.10,2X)', advance='no') etotal, eqm
+        write(io_unit, fmt='(f20.10,2X, f20.10,2X)', advance='no') etotal, eqm
 
         ! index number
         do i=1, c_nconstr
-          write(200, fmt='(I5,2X)', advance='no') c_indx(i)
+          write(io_unit, fmt='(I5,2X)', advance='no') c_indx(i)
         end do
 
         ! reference distances
         do i=1, c_nconstr
-          write(200, fmt='(f12.4,2X)', advance='no') c_dist(i)
+          write(io_unit, fmt='(f12.4,2X)', advance='no') c_dist(i)
         end do
 
-        close(200)
+        close(io_unit)
 
     end subroutine
 

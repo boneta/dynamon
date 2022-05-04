@@ -182,7 +182,7 @@ module CALCULATION_MODES
 
         implicit none
 
-        integer                            :: i, j, k
+        integer                            :: i, j, k, io_unit
         integer                            :: fd
         integer                            :: it1, it2
         integer                            :: it1_max, it2_max
@@ -216,7 +216,8 @@ module CALCULATION_MODES
 
         ! files to dump distances and energies (.out) / energies (.dat)
         if (len_trim(outfile)==0) outfile = trim(name) // ".out"
-        open(unit=900, file=trim(name)//".dat", form='formatted')
+        io_unit = next_unit()
+        open(unit=io_unit, file=trim(name)//".dat", form='formatted')
 
         CALL dcd_initialize( dcd )
         CALL dcd_activate_write( &
@@ -319,7 +320,7 @@ module CALCULATION_MODES
         CALL dcd_write( dcd, atmcrd, boxl )
         write(*,"(a20,2f20.10)") ">>>  RP:", sqrt( sum( x_cur ** 2 ) ), etotal
 
-        write(900, fmt='(I5,2X,F20.10)') 0, etotal
+        write(io_unit, fmt='(I5,2X,F20.10)') 0, etotal
         c_indx = 0
         CALL out_dist_energy(outfile)
 
@@ -414,7 +415,7 @@ module CALCULATION_MODES
             write(*,"(a20,2f20.10)") ">>>  RP:", sqrt( sum( ( x_cur - x_ref ) ** 2 ) ), etotal
             CALL dcd_write( dcd, atmcrd, boxl )
 
-            write(900, fmt='(I5,2X,F20.10)') it1, etotal
+            write(io_unit, fmt='(I5,2X,F20.10)') it1, etotal
             c_indx = irc_dir * it1
             CALL out_dist_energy(outfile)
 
@@ -423,7 +424,7 @@ module CALCULATION_MODES
 
         CALL flush( dcd%unit )
         close( dcd%unit )
-        close(900)
+        close(io_unit)
 
         CALL coordinates_write( trim(name)//".crd" )
         CALL pdb_write( trim(name)//".pdb" )
@@ -812,7 +813,7 @@ module CALCULATION_MODES
 
         implicit none
 
-        integer                            :: n
+        integer                            :: n, io_unit
         integer                            :: nres_tmp
         integer                            :: kie_anum
         real( kind=dp )                    :: pres = 1.D0
@@ -827,11 +828,12 @@ module CALCULATION_MODES
         n = count( qm_sele )
         allocate( atmhes(1:3*n*(3*n+1)/2) )
         CALL atoms_fix( .not. qm_sele )
+        io_unit = next_unit()
 
         ! standard energy
-        open(unit=999, file=trim( kie_hess ), action="read", form="unformatted")
-        read( 999 ) atmhes
-        close( 999 )
+        open(unit=io_unit, file=trim( kie_hess ), action="read", form="unformatted")
+        read(io_unit) atmhes
+        close(io_unit)
         CALL gibbs_energy( pres, temp, 1.0d0, kie_skip, gxh )
 
         ! change masses
@@ -839,9 +841,9 @@ module CALCULATION_MODES
 
         ! isotopic reactants/ts energy
         CALL coordinates_read( trim( coord ) )
-        open(unit=999, file=trim( kie_hess ), action="read", form="unformatted")
-        read( 999 ) atmhes
-        close( 999 )
+        open(unit=io_unit, file=trim( kie_hess ), action="read", form="unformatted")
+        read(io_unit) atmhes
+        close(io_unit)
         CALL gibbs_energy( pres, temp, 1.0d0, kie_skip, gxd )
 
         deallocate( atmhes )
