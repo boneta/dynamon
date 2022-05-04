@@ -16,13 +16,16 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: sudo apt-get -qq install build-essential gfortran
 
     - name: Compile fDynamo
       working-directory: fDynamo
@@ -40,5 +43,6 @@ jobs:
     - name: Test
       working-directory: docs/example
       run: |
+        dynamon --MODE BIN --BIN hbdef1.bin --FF opls.ff --SEQ hbdef1.seq --COORD hbdef1.crd
         dynamon --MODE SP --COORD hbdef1.crd --SYS hbdef1
         dynamon mini.dynn

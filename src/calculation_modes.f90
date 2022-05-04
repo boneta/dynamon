@@ -42,9 +42,7 @@ module CALCULATION_MODES
     end subroutine
 
     !  BUILD_BIN  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    subroutine build_bin(exit_after)
-
-        logical, intent(in)                :: exit_after
+    subroutine build_bin()
 
         character(len=256)                 :: fffile_bin
         integer                            :: dot_position
@@ -65,12 +63,6 @@ module CALCULATION_MODES
         CALL mm_system_write(trim(binfile))
 
         if (Len_Trim(coord) > 0) CALL coordinates_read(trim(coord))
-
-        if (exit_after) then
-            CALL dynamo_footer
-            CALL dynamon_footer
-            STOP
-        end if
 
     end subroutine
 

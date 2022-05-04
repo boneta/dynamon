@@ -53,7 +53,10 @@ program DYNAMON
     ! check if build binary requested
     if (mode == 'BIN') then
         CALL print_mode('BUILD BINARY')
-        CALL build_bin(exit_after=.true.)
+        CALL build_bin
+        CALL dynamo_footer
+        CALL dynamon_footer
+        CALL EXIT(0)
     end if
 
     ! read .bin and .crd
