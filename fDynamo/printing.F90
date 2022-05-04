@@ -183,7 +183,7 @@ CONTAINS
    CALL PRINT_STOP
 
    ! . Stop execution of the program.
-   STOP
+   CALL EXIT(1)
 
    END SUBROUTINE PRINT_ERROR
 

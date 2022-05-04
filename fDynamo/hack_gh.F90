@@ -384,7 +384,7 @@ SUBROUTINE GH_VV_B( ISTEP )
 
    IF (ITERSHAKE .GT. 1000) THEN
       WRITE (*,*) 'Excesive number of iterations in shake '
-      stop
+      CALL EXIT(1)
    end if
 
    IF( ISTEP .NE. 1 ) THEN

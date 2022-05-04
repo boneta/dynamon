@@ -17,7 +17,7 @@ module INITIALIZATION
     implicit none
 
     !  DYNAMON VARIABLES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    character(len=64), parameter       :: dynamon_version = '0.3.5'
+    character(len=64), parameter       :: dynamon_version = '0.3.6'
     character(len=512)                 :: dynamon_path                ! Installation path read from $DYNAMON env variable
     character(len=128)                 :: user_path = '/user/'        ! Relative location from dynamon_path to search for user files (.bin / .dynn)
     integer                            :: t_ini, t_end, clock_rate    ! Elapsed time measurement
@@ -185,7 +185,7 @@ module INITIALIZATION
             write(*,fmt='(/,A,X,A)') trim(level_msg), trim(msg)
         end if
 
-        if (level == 1) STOP
+        if (level == 1) CALL EXIT(1)
 
     end subroutine
 
@@ -481,7 +481,7 @@ module INITIALIZATION
                 case ('-h','-H','--help','--HELP')
                     write(*,fmt='(/,/,A,/)') 'DYNAMON -- A general-purpose script for common calculations with fDynamo'
                     write(*,fmt='(A,/)')       '  USAGE:   dynamon [.dynn] [[--option arg] ...]'
-                    STOP
+                    CALL EXIT(0)
                 case ('--MODE')
                     read(arg,'(A)',iostat=io_stat) mode
                 case ('--NAME')
