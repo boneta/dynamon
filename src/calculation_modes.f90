@@ -414,7 +414,7 @@ module CALCULATION_MODES
             write(*,"(a20,2f20.10)") ">>>  RP:", sqrt( sum( ( x_cur - x_ref ) ** 2 ) ), etotal
             CALL dcd_write( dcd, atmcrd, boxl )
 
-            write(io_unit, fmt='(I5,2X,F20.10)') it1, etotal
+            write(io_unit, fmt='(I5,2X,F20.10)') irc_dir*it1, etotal
             c_indx = irc_dir * it1
             CALL out_dist_energy(outfile)
 
