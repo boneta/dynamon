@@ -73,8 +73,7 @@ module CALCULATION_MODES
         if (len_trim(outfile)==0) outfile = trim(name) // ".out"
 
         CALL energy
-
-        if (mode == 'CORR') CALL out_dist_energy(outfile)
+        CALL out_dist_energy(outfile)
 
     end subroutine
 
@@ -87,10 +86,7 @@ module CALCULATION_MODES
         CALL define_constraints(print_file=.false.)
         CALL calculate_gradient
         CALL calculate_minimization
-
-        if (mode == 'SCAN' .or. mode == 'PES') then
-            CALL out_dist_energy(outfile)
-        end if
+        CALL out_dist_energy(outfile)
         CALL coordinates_write(trim(name)//".crd")
         if (pdb_out) CALL pdb_write(trim(name)//".pdb")
 
