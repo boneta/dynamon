@@ -335,17 +335,6 @@ CONTAINS
    ETOTAL = ETOTAL + EZBND
 #endif
 
-! -------------- particular case, coment out as soon as possible
-!dr(1:3) = atmcrd(1:3,19) - atmcrd(1:3,10)
-!dm = dsqrt( sum( dr ** 2 ) )
-!em = 1000._dp * exp( -10._dp * ( dm - 1.5_dp ) ** 2 )
-!write(*,*) em
-!etotal = etotal + em
-!em = - 20._dp * ( dm - 1.5_dp ) * em / dm
-!atmder(1:3,19) = atmder(1:3,19) + em * dr(1:3)
-!atmder(1:3,10) = atmder(1:3,10) - em * dr(1:3)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
    ! . Zero out the derivatives of fixed atoms.
    IF ( NFIXED > 0 ) THEN
       DO IATOM = 1,NATOMS
@@ -360,14 +349,22 @@ CONTAINS
 
 
    !---------------------------
-   SUBROUTINE HESSIAN( PRINT )
+   SUBROUTINE HESSIAN( PRINT, FILE )
    !---------------------------
    LOGICAL, INTENT(IN), OPTIONAL :: PRINT
+   CHARACTER( LEN=* ), INTENT(IN), OPTIONAL :: FILE
 
+   CHARACTER( LEN=256 ) :: HESS_FILE
    REAL( KIND=DP ), DIMENSION(:), ALLOCATABLE :: DX, DG
    INTEGER :: FD, ERR, I, J
    LOGICAL :: QPRINT
 
+   ! . Hessian file naming: if not provided, use default
+   IF( .NOT. PRESENT( FILE ) ) THEN
+      HESS_FILE = "update.dump"
+   ELSE
+      HESS_FILE = FILE
+   END IF
 
    ! . Allocate some arrays
    ALLOCATE( DX(1:3*NFREE), DG(1:3*NFREE) )
@@ -385,7 +382,7 @@ CONTAINS
    ! . Try to update hessian using the gradient vector
    ELSE
        FD = NEXT_UNIT()
-       OPEN( UNIT = FD, FILE = "update.dump", ACTION = "READ", FORM = "UNFORMATTED", STATUS = "OLD", IOSTAT = ERR )
+       OPEN( UNIT = FD, FILE = HESS_FILE, ACTION = "READ", FORM = "UNFORMATTED", STATUS = "OLD", IOSTAT = ERR )
        ! . Ok, read and update hessian
        IF( ERR == 0 ) THEN
            CALL GRADIENT( .FALSE. )
@@ -412,7 +409,7 @@ if( sqrt( sum( dx ** 2 ) ) > 1.d-6 .and. sqrt( sum( dg ** 2 ) ) > 1.d-6 ) then
                CASE DEFAULT ; CALL PRINT_ERROR ( "USE_HESSIAN_METHOD", "Valid updaters are: BFGS / SR1 / PSB / BOFILL" )
            END SELECT
 else
-	write(*,*) " -- Hessian just read (from previous calculation)..."
+	write(*,*) " -- Hessian read from file, no update performed --"
 end if
        ! . Sorry, no update can be performed right now... :( 
        ELSE
@@ -435,7 +432,7 @@ end if
        END IF
    END DO
    FD = NEXT_UNIT()
-   OPEN( UNIT = FD, FILE = "update.dump", ACTION = "WRITE", FORM = "UNFORMATTED", STATUS = "UNKNOWN" )
+   OPEN( UNIT = FD, FILE = HESS_FILE, ACTION = "WRITE", FORM = "UNFORMATTED", STATUS = "UNKNOWN" )
    WRITE( FD ) DX(1:3*NFREE)
    WRITE( FD ) DG(1:3*NFREE)
    WRITE( FD ) ATMHES(1:3*NFREE*(3*NFREE+1)/2)

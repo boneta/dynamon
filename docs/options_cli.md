@@ -52,12 +52,12 @@ the following argument.
 | --VEL              | *char* | Velocities file to read instead of generate random (for continuations) |
 | | |
 | --LOC_STEPS        | *int*  | Baker search maximum number of steps |
+| --HESS             | *char* | Hessian file |
 | --TS               | *bool* | Search for a saddle point (transition state) |
 | | |
 | --IRC_DIR          | *int*  | Initial direction to follow {-1,1} |
 | | |
 | --KIE_SKIP         | *int*  | Number of frequencies to skip |
-| --KIE_HESS         | *char* | Hessian file |
 | | |
 | --INT_DCD          | *char* | Trajectory file along which calculate interactions |
 

@@ -86,6 +86,7 @@ module CALCULATION_MODES
         CALL define_constraints(print_file=.false.)
         CALL calculate_gradient
         CALL calculate_minimization
+        CALL energy_print
         CALL out_dist_energy(outfile)
         CALL coordinates_write(trim(name)//".crd")
         if (pdb_out) CALL pdb_write(trim(name)//".pdb")
@@ -101,6 +102,7 @@ module CALCULATION_MODES
         real(8), allocatable               :: pan_x(:)
 
         if (len_trim(name)==0) name = trim(coord_name) // "-loc"
+        if (len_trim(hessfile)==0) hessfile = trim(name) // ".hess"
 
         use_hessian_numerical = .false.
         use_hessian_recalc = 1000
@@ -116,7 +118,7 @@ module CALCULATION_MODES
             step_number        = 1000, &
             gradient_tolerance = 0.5_dp, &
             print_frequency    = 1, &
-            trajectory         = "snapshot.dcd" )
+            trajectory         = "locate.dcd" )
 
         allocate( pan_x(1:3*count(qm_sele)) )
         j = -3
@@ -151,19 +153,16 @@ module CALCULATION_MODES
 
         CALL atoms_fix( .not. ( nofix_sele .or. qm_sele ) )
         CALL gradient
-        io_unit = next_unit()
-        open( unit = io_unit, file = "forces.dump", action = "write", form = "formatted" )
-        do i = 1, natoms
-            write(io_unit, "(4f20.10)") atmder(1:3,i), sqrt(sum(atmder(1:3,i)*atmder(1:3,i))/3._dp)
-        end do
-        close(io_unit)
+        ! io_unit = next_unit()
+        ! open( unit = io_unit, file = "forces.dump", action = "write", form = "formatted" )
+        ! do i = 1, natoms
+        !     write(io_unit, "(4f20.10)") atmder(1:3,i), sqrt(sum(atmder(1:3,i)*atmder(1:3,i))/3._dp)
+        ! end do
+        ! close(io_unit)
 
         CALL atoms_fix( .not. qm_sele )
         use_hessian_recalc = 1
-        CALL hessian
-        open( unit = io_unit, file = "hessian.dump", action = "write", form = "unformatted" )
-        write( io_unit ) atmhes
-        close(io_unit)
+        CALL hessian( .true., hessfile )
         CALL project_rotation_translation( atmhes, .true. )
         CALL normal_mode_frequencies( atmhes )
         do i = 1, 10
@@ -209,6 +208,9 @@ module CALCULATION_MODES
             end if
         end if
 
+        ! Hessian file
+        if (len_trim(hessfile)==0) hessfile = trim(name) // ".hess"
+
         ! files to dump distances and energies (.out) / energies (.dat)
         if (len_trim(outfile)==0) outfile = trim(name) // ".out"
         io_unit = next_unit()
@@ -251,7 +253,7 @@ module CALCULATION_MODES
         allocate( x_cur(1:acs_n3), g_cur(1:acs_n3), vec(1:acs_n3), x_ref(1:acs_n3), x_1st(1:acs_n3) )
 
         CALL atoms_fix( .not. qm_sele )
-        CALL hessian
+        CALL hessian( .false., hessfile )
         k = 0
         do i = 1, acs_n3
             do j = 1, i
@@ -330,7 +332,7 @@ module CALCULATION_MODES
             end do
             CALL project_grt( acs_n3, x_cur, mw, g_cur )
             CALL atoms_fix( .not. qm_sele )
-            CALL hessian( .false. )
+            CALL hessian( .false., hessfile )
             k = 0
             do i = 1, acs_n3
                 do j = 1, i
@@ -808,9 +810,8 @@ module CALCULATION_MODES
 
         implicit none
 
-        integer                            :: n, io_unit
-        integer                            :: nres_tmp
-        integer                            :: kie_anum
+        logical                            :: f_exists
+        integer                            :: nres_tmp, kie_anum
         real( kind=dp )                    :: pres = 1.D0
         real( kind=dp )                    :: gxh, gxd
 
@@ -820,15 +821,23 @@ module CALCULATION_MODES
                                residue_number = nres_tmp, &
                                atom_name      = kie_atom(3) )
 
-        n = count( qm_sele )
-        allocate( atmhes(1:3*n*(3*n+1)/2) )
         CALL atoms_fix( .not. qm_sele )
-        io_unit = next_unit()
+
+        ! check Hessian file or calculate
+        if (len_trim(hessfile)==0) hessfile = trim(name) // ".hess"
+        INQUIRE( file=hessfile, exist=f_exists )
+        if (.not. f_exists) then
+            hessfile = trim(coord_name) // ".hess"
+            write(*,fmt='(/,A)') ">> Hessian file not provided!"
+            write(*,'(A,A)') ">> Calculating Hessian and dumping it to ", hessfile
+            call hessian( .false., hessfile )
+        else
+            write(*,fmt='(/,A,A)') ">> Reading Hessian from ", hessfile
+            allocate( ATMHES(1:3*NFREE*(3*NFREE+1)/2) )
+        end if
 
         ! standard energy
-        open(unit=io_unit, file=trim( kie_hess ), action="read", form="unformatted")
-        read(io_unit) atmhes
-        close(io_unit)
+        CALL read_hessian()
         CALL gibbs_energy( pres, temp, 1.0d0, kie_skip, gxh )
 
         ! change masses
@@ -836,12 +845,24 @@ module CALCULATION_MODES
 
         ! isotopic reactants/ts energy
         CALL coordinates_read( trim( coord ) )
-        open(unit=io_unit, file=trim( kie_hess ), action="read", form="unformatted")
-        read(io_unit) atmhes
-        close(io_unit)
+        CALL read_hessian()
         CALL gibbs_energy( pres, temp, 1.0d0, kie_skip, gxd )
 
-        deallocate( atmhes )
+        deallocate( ATMHES )
+
+        contains
+
+        subroutine read_hessian()
+            implicit none
+            integer :: io_unit
+            real(kind=dp), dimension(3*NFREE) :: DX, DG
+            io_unit = next_unit()
+            open(unit=io_unit, file=trim( hessfile ), action="read", form="unformatted", status="old")
+            read(io_unit) DX(1:3*NFREE)
+            read(io_unit) DG(1:3*NFREE)
+            read(io_unit) ATMHES(1:3*NFREE*(3*NFREE+1)/2)
+            close(io_unit)
+        end subroutine
 
     end subroutine
 

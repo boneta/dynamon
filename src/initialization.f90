@@ -66,6 +66,7 @@ module INITIALIZATION
 
     integer                            :: loc_steps = 100             ! Number of steps for baker location
     real(8)                            :: loc_tolerance = 1.0         ! Location convergence
+    character(len=256)                 :: hessfile = ''               ! Hessian file
     logical                            :: ts_search = .false.         ! Search for a saddle point
 
     integer                            :: irc_dir = 0                 ! IRC direction {-1,1}
@@ -80,7 +81,6 @@ module INITIALIZATION
     character(len=64)                  :: kie_atom(3) = ''            ! Atom to calculate KIE (subsystem, residue_number, atom_name)
     integer                            :: kie_skip = 0                ! Number of frequencies to skip
     real(8)                            :: kie_mass = 2.01410177812D0  ! New mass to substitute in the atom
-    character(len=256)                 :: kie_hess = 'update.dump'    ! Hessian file
 
     integer                            :: a_natoms = 0                ! Number of input atoms
     character(len=64), allocatable     :: a_atoms(:,:)                ! Input atoms (subsystem, residue_number, atom_name)
@@ -312,6 +312,8 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, loc_steps
                 case ('LOC_TOLERANCE')
                     read(100,*,iostat=io_stat) option, loc_tolerance
+                case ('HESS')
+                    read(100,*,iostat=io_stat) option, hessfile
                 case ('TS')
                     read(100,*,iostat=io_stat) option, ts_search
                 case ('IRC_DIR')
@@ -336,8 +338,6 @@ module INITIALIZATION
                     read(100,*,iostat=io_stat) option, kie_skip
                 case ('KIE_MASS')
                     read(100,*,iostat=io_stat) option, kie_mass
-                case ('KIE_HESS')
-                    read(100,*,iostat=io_stat) option, kie_hess
                 case ('ATOM','A')
                     a_natoms = a_natoms + 1
                     allocate(a_atoms_tmp(a_natoms,3))
@@ -535,14 +535,14 @@ module INITIALIZATION
                     read(arg,'(A)',iostat=io_stat) velocities
                 case ('--LOC_STEPS')
                     read(arg,*,iostat=io_stat) loc_steps
+                case ('--HESS')
+                    read(arg,*,iostat=io_stat) hessfile
                 case ('--TS')
                     read(arg,*,iostat=io_stat) ts_search
                 case ('--IRC_DIR')
                     read(arg,*,iostat=io_stat) irc_dir
                 case ('--KIE_SKIP')
                     read(arg,*,iostat=io_stat) kie_skip
-                case ('--KIE_HESS')
-                    read(arg,*,iostat=io_stat) kie_hess
                 case ('--INT_DCD')
                     read(arg,'(A)',iostat=io_stat) int_dcd
                 case ('--N', '--DIST')

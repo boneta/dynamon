@@ -72,11 +72,12 @@ String arguments that contains slashes or commas should be between quotes.
 | PBC              | *bool* | F       | Scheme for non-bonding interactions (minimum_image) |
 
 #### Locate
-|   OPTION NAME    | TYPE   | DEFAULT | DESCRIPTION |
-| :--------------- | :--:   | :-----: | ----------- |
-| LOC_STEPS        | *int*  | 100     | Baker search maximum number of steps |
-| LOC_TOLERANCE    | *real* | 1.0     | Convergence criteria for location |
-| TS               | *bool* | F       | Search for a saddle point (transition state) |
+|   OPTION NAME    | TYPE   | DEFAULT     | DESCRIPTION |
+| :--------------- | :--:   | :-----:     | ----------- |
+| LOC_STEPS        | *int*  | 100         | Baker search maximum number of steps |
+| LOC_TOLERANCE    | *real* | 1.0         | Convergence criteria for location |
+| HESS             | *char* | *mode*.hess | Hessian file |
+| TS               | *bool* | F           | Search for a saddle point (transition state) |
 
 #### IRC
 |   OPTION NAME    | TYPE   | DEFAULT | DESCRIPTION |
@@ -99,7 +100,6 @@ String arguments that contains slashes or commas should be between quotes.
 | KIE_ATOM         | *char* *int* *char* | -           | Atom to calculate KIE (subsystem, residue number, atom name) |
 | KIE_SKIP         | *int*               | 0           | Number of frequencies to skip |
 | KIE_MASS         | *real*              | 2.01410     | New mass for the atom |
-| KIE_HESS         | *char*              | update.dump | Hessian file |
 
 #### Constraints
 An arbitrary number of constraints can be applied on almost every kind of calculation. \
@@ -138,4 +138,4 @@ account N, DINIT and STEP options.
 | DINIT            | *real* | Initial distance to consider |
 | DIST             | *real* | Distance to constraint directly |
 | STEP             | *real* | Step distance to consider |
-| DFILE            | *char* | File name to write distance evolution (dat_) |
+| DFILE            | *char* | File name to write distance evolution (def: dat_#) |
