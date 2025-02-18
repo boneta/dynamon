@@ -22,12 +22,16 @@ source dynamon.rc
 ```
 
 ## Usage
+Only compiled once and configured at runtime on every execution! \
 For more information, see the [documentation](./docs/README.md).
 ```
 dynamon [.dynn] [[--option arg] ...]
 ```
-Only compiled once and configured at runtime on every execution. \
-There are two complementary ways of pass specific calculation options: an [input file](./docs/options_file.md) (.dynn)
-and through [command line arguments](./docs/options_cli.md). Additionally, for every system to work with a binary file
-(.bin) and a [selection file](./docs/sele_file.md) (.dynn) with QM and NOFIX atoms are needed.
-*Remark:* Only calculations starting from a single structure can be performed.
+
+Two non-exclusive ways of pass specific calculation options:
+- With an [input file](./docs/options_file.md) (.dynn)
+- Through [command line arguments](./docs/options_cli.md)
+
+For every system to work with a binary file (.bin) and a [selection file](./docs/sele_file.md) (.dynn) with QM and NOFIX atoms are needed. Every calculation starts from a structure file (.crd).
+
+Additionally, a [PyMOL plug-in](./plugin/README.md) is available to helpful with the system setup.
