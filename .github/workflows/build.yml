@@ -7,10 +7,13 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/*'
+      - 'plugin/*'
   pull_request:
     paths-ignore:
       - '**.md'
       - 'docs/*'
+      - 'plugin/*'
+  workflow_dispatch:
 
 jobs:
 
@@ -22,7 +25,7 @@ jobs:
         shell: bash
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: sudo apt-get -qq install build-essential gfortran
