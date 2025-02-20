@@ -12,6 +12,8 @@
 
 module panadero
 
+  use initialization,        only : hessfile
+
   use definitions,           only : dp
   use atoms,                 only : natoms, nfree, nfixed, atmcrd, atmfix, atoms_fix, atmnam
   use mm_terms,              only : atmchg
@@ -119,7 +121,7 @@ module panadero
       CALL dcd_write( dcd_file, atmcrd, boxl )
 
       CALL atoms_fix( .not. core )
-      CALL hessian( print = .false. )
+      CALL hessian( print = .false., file = hessfile )
       e = etotal
       j = -3
       do i = 1, natoms
